@@ -16,10 +16,10 @@ class Plugin(openpaperwork_core.PluginBase, GtkInit):
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': Flatpak,
-                'defaults': ['openpaperwork_core.flatpak'],
-            },
+            openpaperwork_core.Dependency(
+                interface=Flatpak,
+                defaults=['openpaperwork_core.flatpak'],
+            ),
         ]
 
     def gtk_init(self, *args, **kwargs):

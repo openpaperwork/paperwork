@@ -25,6 +25,7 @@ from openpaperwork_core.interfaces.app import App
 from openpaperwork_core.interfaces.config import AbstractSetting
 from openpaperwork_core.interfaces.config import Config
 from openpaperwork_core.interfaces.config_backend import ConfigBackend
+import openpaperwork_core
 
 
 LOGGER = logging.getLogger(__name__)
@@ -64,14 +65,14 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': App,
-                'defaults': ['openpaperwork_core.app'],
-            },
-            {
-                'interface': ConfigBackend,
-                'defaults': ['openpaperwork_core.config.backend.configparser'],
-            },
+            openpaperwork_core.Dependency(
+                interface=App,
+                defaults=['openpaperwork_core.app'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=ConfigBackend,
+                defaults=['openpaperwork_core.config.backend.configparser'],
+            ),
         ]
 
     def __init__(self, core):

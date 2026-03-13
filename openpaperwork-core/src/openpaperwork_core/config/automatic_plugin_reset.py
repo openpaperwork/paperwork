@@ -17,10 +17,10 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": ConfigBackend,
-                "defaults": [],
-            },
+            openpaperwork_core.Dependency(
+                interface=ConfigBackend,
+                defaults=[],
+            ),
         ]
 
     @openpaperwork_core.noop

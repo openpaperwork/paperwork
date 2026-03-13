@@ -79,24 +79,24 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': Config,
-                'defaults': ['openpaperwork_core.config'],
-            },
-            {
-                'interface': FrameDrawerFactory,
-                'defaults': ['paperwork_gtk.drawer.frame'],
-            },
-            {
-                'interface': Scan,
-                'defaults': ['paperwork_backend.docscan.libinsane'],
-            },
-            {
-                'interface': PredefinedCropping,
-                'defaults': [
+            openpaperwork_core.Dependency(
+                interface=Config,
+                defaults=['openpaperwork_core.config'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=FrameDrawerFactory,
+                defaults=['paperwork_gtk.drawer.frame'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Scan,
+                defaults=['paperwork_backend.docscan.libinsane'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=PredefinedCropping,
+                defaults=[
                     'paperwork_backend.guesswork.cropping.calibration'
                 ]
-            },
+            ),
         ]
 
     def __init__(self, core):

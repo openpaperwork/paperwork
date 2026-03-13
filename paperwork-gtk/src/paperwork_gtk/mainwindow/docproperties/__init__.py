@@ -162,40 +162,40 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                "interface": DocOpener,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                "interface": DocPropertiesComponent,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                "interface": DocStorage,
-                "defaults": ["paperwork_backend.model.workdir"],
-            },
-            {
-                'interface': GtkResources,
-                'defaults': ['openpaperwork_gtk.resources'],
-            },
-            {
-                'interface': MainWindow,
-                'defaults': ['paperwork_gtk.mainwindow.window'],
-            },
-            {
-                'interface': I18n,
-                'defaults': ['openpaperwork_core.i18n.python'],
-            },
-            {
-                'interface': Mainloop,
-                'defaults': ['openpaperwork_gtk.mainloop.glib'],
-            },
-            {
-                'interface': DocTransactionManager,
-                'defaults': ['paperwork_backend.sync'],
-            },
+            openpaperwork_core.Dependency(
+                interface=DocOpener,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocPropertiesComponent,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocStorage,
+                defaults=["paperwork_backend.model.workdir"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkResources,
+                defaults=['openpaperwork_gtk.resources'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=MainWindow,
+                defaults=['paperwork_gtk.mainwindow.window'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=I18n,
+                defaults=['openpaperwork_core.i18n.python'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=['openpaperwork_gtk.mainloop.glib'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocTransactionManager,
+                defaults=['paperwork_backend.sync'],
+            ),
         ]
 
     def __init__(self, core):

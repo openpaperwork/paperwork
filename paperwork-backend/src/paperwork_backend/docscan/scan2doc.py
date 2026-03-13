@@ -24,39 +24,39 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                'interface': Docs,
-                'defaults': ['paperwork_backend.model'],
-            },
-            {
-                'interface': DocStorage,
-                'defaults': ['paperwork_backend.model.workdir'],
-            },
-            {
-                'interface': Mainloop,
-                'defaults': ['openpaperwork_core.mainloop.asyncio'],
-            },
-            {
-                'interface': PageImg,
-                'defaults': ['paperwork_backend.model.img'],
-            },
-            {
-                'interface': Pillow,
-                'defaults': ['openpaperwork_core.pillow.img'],
-            },
-            {
-                'interface': Scan,
-                'defaults': ['paperwork_backend.docscan.libinsane'],
-            },
-            {
-                "interface": Scan2DocListener,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                'interface': DocTransactionManager,
-                'defaults': ['paperwork_backend.sync'],
-            },
+            openpaperwork_core.Dependency(
+                interface=Docs,
+                defaults=['paperwork_backend.model'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocStorage,
+                defaults=['paperwork_backend.model.workdir'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=['openpaperwork_core.mainloop.asyncio'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageImg,
+                defaults=['paperwork_backend.model.img'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Pillow,
+                defaults=['openpaperwork_core.pillow.img'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Scan,
+                defaults=['paperwork_backend.docscan.libinsane'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Scan2DocListener,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocTransactionManager,
+                defaults=['paperwork_backend.sync'],
+            ),
         ]
 
     def __init__(self, core):

@@ -26,11 +26,11 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': Paths,
-                'defaults': ['openpaperwork_core.paths.xdg'],
-                "optional": True,  # to break dependency loops
-            },
+            openpaperwork_core.Dependency(
+                interface=Paths,
+                defaults=['openpaperwork_core.paths.xdg'],
+                optional=True,  # to break dependency loops
+            ),
         ]
 
     def __init__(self, core):

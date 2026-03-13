@@ -27,27 +27,27 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': Config,
-                'defaults': ['openpaperwork_core.config'],
-            },
-            {
-                "interface": Fs,
-                "defaults": ["openpaperwork_gtk.fs.glib"],
-            },
-            {
-                'interface': GtkResources,
-                'defaults': ['openpaperwork_gtk.resources'],
-            },
-            {
-                'interface': Screenshot,
-                'defaults': ['openpaperwork_gtk.screenshots'],
-            },
-            {
-                "interface": SettingsDialogComponent,
-                "defaults": [],
-                "optional": True,
-            },
+            openpaperwork_core.Dependency(
+                interface=Config,
+                defaults=['openpaperwork_core.config'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=["openpaperwork_gtk.fs.glib"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkResources,
+                defaults=['openpaperwork_gtk.resources'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Screenshot,
+                defaults=['openpaperwork_gtk.screenshots'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=SettingsDialogComponent,
+                defaults=[],
+                optional=True,
+            ),
         ]
 
     def __init__(self, core):

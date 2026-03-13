@@ -13,14 +13,14 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': GtkProgressWidget,
-                'defaults': ['openpaperwork_gtk.widgets.progress'],
-            },
-            {
-                'interface': DocViewer,
-                'defaults': ['paperwork_gtk.mainwindow.docview'],
-            },
+            openpaperwork_core.Dependency(
+                interface=GtkProgressWidget,
+                defaults=['openpaperwork_gtk.widgets.progress'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocViewer,
+                defaults=['paperwork_gtk.mainwindow.docview'],
+            ),
         ]
 
     def __init__(self, core):

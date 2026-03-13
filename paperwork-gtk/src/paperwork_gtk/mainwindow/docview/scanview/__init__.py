@@ -170,34 +170,34 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": Docs,
-                "defaults": ["paperwork_backend.model"],
-            },
-            {
-                "interface": DocViewer,
-                "defaults": ["paperwork_gtk.mainwindow.docview"],
-            },
-            {
-                'interface': GtkResources,
-                'defaults': ['openpaperwork_gtk.resources'],
-            },
-            {
-                "interface": PageViewerListener,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                "interface": Scan2Doc,
-                "defaults": ["paperwork_backend.docscan.scan2doc"],
-            },
-            {
-                'interface': ScanDrawerFactory,
-                'defaults': [
+            openpaperwork_core.Dependency(
+                interface=Docs,
+                defaults=["paperwork_backend.model"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocViewer,
+                defaults=["paperwork_gtk.mainwindow.docview"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkResources,
+                defaults=['openpaperwork_gtk.resources'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageViewerListener,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=Scan2Doc,
+                defaults=["paperwork_backend.docscan.scan2doc"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=ScanDrawerFactory,
+                defaults=[
                     'paperwork_gtk.drawer.calibration',
                     'paperwork_gtk.drawer.scan',
                 ],
-            },
+            ),
         ]
 
     def __init__(self, core):

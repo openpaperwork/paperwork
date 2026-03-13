@@ -18,14 +18,14 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': Fs,
-                'defaults': ['openpaperwork_gtk.fs.gio'],
-            },
-            {
-                'interface': Resources,
-                'defaults': ['openpaperwork_core.resources.setuptools'],
-            },
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=['openpaperwork_gtk.fs.gio'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Resources,
+                defaults=['openpaperwork_core.resources.setuptools'],
+            ),
         ]
 
     def authors_get(self, out: dict):

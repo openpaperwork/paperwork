@@ -82,35 +82,35 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                'interface': DocStorage,
-                'defaults': ['paperwork_backend.model.workdir'],
-            },
-            {
-                'interface': DocList,
-                'defaults': ['paperwork_gtk.maindow.doclist'],
-            },
-            {
-                'interface': PillowUtil,
-                'defaults': ['openpaperwork_core.pillow.util'],
-            },
-            {
-                'interface': PixbufPillow,
-                'defaults': ['openpaperwork_gtk.pixbuf.pillow'],
-            },
-            {
-                "interface": ProgressListener,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                'interface': DocThumbnail,
-                'defaults': ['paperwork_backend.model.thumbnail'],
-            },
-            {
-                'interface': WorkQueue,
-                'defaults': ['openpaperwork_core.work_queue.default'],
-            },
+            openpaperwork_core.Dependency(
+                interface=DocStorage,
+                defaults=['paperwork_backend.model.workdir'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocList,
+                defaults=['paperwork_gtk.maindow.doclist'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=PillowUtil,
+                defaults=['openpaperwork_core.pillow.util'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=PixbufPillow,
+                defaults=['openpaperwork_gtk.pixbuf.pillow'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=ProgressListener,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocThumbnail,
+                defaults=['paperwork_backend.model.thumbnail'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=WorkQueue,
+                defaults=['openpaperwork_core.work_queue.default'],
+            ),
         ]
 
     def __init__(self, core):

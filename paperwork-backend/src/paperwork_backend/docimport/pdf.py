@@ -104,27 +104,27 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return DirectFileImporter.get_deps() + openpaperwork_core.promise.get_deps() + [
-            {
-                'interface': DocPdf,
-                'defaults': ['paperwork_backend.model.pdf'],
-            },
-            {
-                'interface': Fs,
-                'defaults': ['openpaperwork_gtk.fs.gio'],
-            },
-            {
-                "interface": Index,
-                "defaults": ["paperwork_backend.index.whoosh"],
-                "optional": True,
-            },
-            {
-                'interface': Mainloop,
-                'defaults': ['openpaperwork_gtk.mainloop.glib'],
-            },
-            {
-                "interface": Poppler,
-                "defaults": ["paperwork_backend.poppler.file"],
-            },
+            openpaperwork_core.Dependency(
+                interface=DocPdf,
+                defaults=['paperwork_backend.model.pdf'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=['openpaperwork_gtk.fs.gio'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Index,
+                defaults=["paperwork_backend.index.whoosh"],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=['openpaperwork_gtk.mainloop.glib'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Poppler,
+                defaults=["paperwork_backend.poppler.file"],
+            ),
         ]
 
     def get_import_mime_types(self, out: set):

@@ -81,58 +81,58 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": DocListListener,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                'interface': DocStorage,
-                'defaults': ['paperwork_backend.model.workdir'],
-            },
-            {
-                "interface": DocType,
-                "defaults": [
+            openpaperwork_core.Dependency(
+                interface=DocListListener,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocStorage,
+                defaults=['paperwork_backend.model.workdir'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocType,
+                defaults=[
                     "paperwork_backend.model.img",
                     "paperwork_backend.model.pdf",
                 ],
-            },
-            {
-                'interface': DragAndDrop,
-                'defaults': ['paperwork_gtk.gesture.drag_and_drop'],
-            },
-            {
-                "interface": Fs,
-                "defaults": ["openpaperwork_gtk.fs.gio"],
-            },
-            {
-                'interface': GtkResources,
-                'defaults': ['openpaperwork_gtk.resources'],
-            },
-            {
-                'interface': MainWindow,
-                'defaults': ['paperwork_gtk.mainwindow.window'],
-            },
-            {
-                'interface': FlowLayoutFactory,
-                'defaults': ['paprwork_gtk.widget.flowlayout'],
-            },
-            {
-                'interface': I18n,
-                'defaults': ['openpaperwork_core.i18n.python'],
-            },
-            {
-                'interface': Mainloop,
-                'defaults': ['openpaperwork_gtk.mainloop.glib'],
-            },
-            {
-                "interface": NewDoc,
-                "defaults": ["paperwork_gtk.new_doc"],
-            },
-            {
-                'interface': Screenshot,
-                'defaults': ['openpaperwork_gtk.screenshots'],
-            },
+            ),
+            openpaperwork_core.Dependency(
+                interface=DragAndDrop,
+                defaults=['paperwork_gtk.gesture.drag_and_drop'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=["openpaperwork_gtk.fs.gio"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkResources,
+                defaults=['openpaperwork_gtk.resources'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=MainWindow,
+                defaults=['paperwork_gtk.mainwindow.window'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=FlowLayoutFactory,
+                defaults=['paprwork_gtk.widget.flowlayout'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=I18n,
+                defaults=['openpaperwork_core.i18n.python'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=['openpaperwork_gtk.mainloop.glib'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=NewDoc,
+                defaults=["paperwork_gtk.new_doc"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Screenshot,
+                defaults=['openpaperwork_gtk.screenshots'],
+            ),
         ]
 
     def __init__(self, core):

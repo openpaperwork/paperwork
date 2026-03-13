@@ -66,21 +66,21 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": Fs,
-                "defaults": ["openpaperwork_gtk.fs.gio"],
-            },
-            {
-                'interface': L10nInit,
-                'defaults': [
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=["openpaperwork_gtk.fs.gio"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=L10nInit,
+                defaults=[
                     'openpaperwork_core.l10n.python',
                     'openpaperwork_gtk.l10n',
                 ],
-            },
-            {
-                'interface': Resources,
-                'defaults': ['openpaperwork_core.resources.setuptools'],
-            },
+            ),
+            openpaperwork_core.Dependency(
+                interface=Resources,
+                defaults=['openpaperwork_core.resources.setuptools'],
+            ),
         ]
 
     def __init__(self, core):

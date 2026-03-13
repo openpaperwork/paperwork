@@ -37,31 +37,31 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': AppActionCollector,
-                'defaults': ['paperwork_gtk.mainwindow.window'],
-            },
-            {
-                'interface': PageManagement,
-                'defaults': ['paperwork_backend.model.img_overlay'],
-            },
-            {
-                "interface": DocOpener,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                "interface": DocViewer,
-                "defaults": [],
-            },
-            {
-                'interface': DocTransactionManager,
-                'defaults': ['paperwork_backend.sync'],
-            },
-            {
-                "interface": Mainloop,
-                "defaults": ["openpaperwork_gtk.mainloop.glib"],
-            },
+            openpaperwork_core.Dependency(
+                interface=AppActionCollector,
+                defaults=['paperwork_gtk.mainwindow.window'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageManagement,
+                defaults=['paperwork_backend.model.img_overlay'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocOpener,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocViewer,
+                defaults=[],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocTransactionManager,
+                defaults=['paperwork_backend.sync'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=["openpaperwork_gtk.mainloop.glib"],
+            ),
         ]
 
     def __init__(self, core):

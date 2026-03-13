@@ -21,14 +21,14 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": Fs,
-                "defaults": ["openpaperwork_core.fs.python"],
-            },
-            {
-                'interface': Mainloop,
-                'defaults': ['openpaperwork_core.mainloop.asyncio'],
-            },
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=["openpaperwork_core.fs.python"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=['openpaperwork_core.mainloop.asyncio'],
+            ),
         ]
 
     def sqlite_open(self, db_url, *args, **kwargs):

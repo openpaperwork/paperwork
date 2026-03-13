@@ -14,21 +14,21 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': Config,
-                'defaults': ['openpaperwork_core.config'],
-            },
-            {
-                'interface': DocStorage,
-                'defaults': ['paperwork_backend.model.workdir'],
-            },
-            {
-                "interface": DocType,
-                "defaults": [
+            openpaperwork_core.Dependency(
+                interface=Config,
+                defaults=['openpaperwork_core.config'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocStorage,
+                defaults=['paperwork_backend.model.workdir'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocType,
+                defaults=[
                     "paperwork_backend.model.img",
                     "paperwork_backend.model.pdf",
                 ],
-            },
+            ),
         ]
 
     def __init__(self, core):

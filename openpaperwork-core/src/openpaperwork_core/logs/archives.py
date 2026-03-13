@@ -9,6 +9,7 @@ from openpaperwork_core.interfaces.fs import Fs
 from openpaperwork_core.interfaces.logs import LogArchiver
 from openpaperwork_core.interfaces.uncaught_exception_listener import UncaughtExceptionListener
 from openpaperwork_core.logs import UnixTimeStampLogFormatter
+import openpaperwork_core
 
 
 LOGGER = logging.getLogger(__name__)
@@ -98,14 +99,14 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': FileArchives,
-                'defaults': ['openpaperwork_core.archives'],
-            },
-            {
-                'interface': Fs,
-                'defaults': ['openpaperwork_core.fs.python'],
-            },
+            openpaperwork_core.Dependency(
+                interface=FileArchives,
+                defaults=['openpaperwork_core.archives'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=['openpaperwork_core.fs.python'],
+            ),
         ]
 
     def __init__(self, core):

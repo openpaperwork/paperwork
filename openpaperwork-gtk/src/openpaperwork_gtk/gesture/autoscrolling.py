@@ -132,10 +132,10 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": Mainloop,
-                "defaults": ["openpaperwork_gtk.mainloop.glib"],
-            },
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=["openpaperwork_gtk.mainloop.glib"],
+            ),
         ]
 
     def chkdeps(self, out: dict):

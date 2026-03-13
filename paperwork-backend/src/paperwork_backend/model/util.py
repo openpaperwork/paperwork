@@ -1,6 +1,7 @@
 import logging
 
 from openpaperwork_core.interfaces.fs import Fs
+import openpaperwork_core
 
 from paperwork_backend.interfaces.docs import Docs
 
@@ -10,15 +11,15 @@ LOGGER = logging.getLogger(__name__)
 
 def get_deps():
     return [
-        {
-            "interface": Fs,
-            "defaults": ["openpaperwork_core.fs.python"],
-        },
-        {
-            "interface": Docs,
-            "defaults": ["paperwork_backend.model"],
-            "optional": True,
-        },
+        openpaperwork_core.Dependency(
+            interface=Fs,
+            defaults=["openpaperwork_core.fs.python"],
+        ),
+        openpaperwork_core.Dependency(
+            interface=Docs,
+            defaults=["paperwork_backend.model"],
+            optional=True,
+        ),
     ]
 
 

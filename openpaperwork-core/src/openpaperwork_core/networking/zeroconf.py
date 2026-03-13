@@ -14,10 +14,10 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": Networking,
-                "defaults": ["openpaperwork_core.networking"],
-            },
+            openpaperwork_core.Dependency(
+                interface=Networking,
+                defaults=["openpaperwork_core.networking"],
+            ),
         ]
 
     def __init__(self, core):

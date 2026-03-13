@@ -171,17 +171,15 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": BoxSelectionListener,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                'interface': PageViewBoxes,
-                'defaults': [
-                    'paperwork_gtk.mainwindow.docview.pageview.boxes'
-                ],
-            },
+            openpaperwork_core.Dependency(
+                interface=BoxSelectionListener,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageViewBoxes,
+                defaults=['paperwork_gtk.mainwindow.docview.pageview.boxes'],
+            ),
         ]
 
     def __init__(self, core):

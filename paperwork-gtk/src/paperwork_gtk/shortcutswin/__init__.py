@@ -43,18 +43,18 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": Fs,
-                "defaults": ["openpaperwork_gtk.fs.gio"],
-            },
-            {
-                'interface': GtkResources,
-                'defaults': ['openpaperwork_gtk.resources'],
-            },
-            {
-                'interface': Screenshot,
-                'defaults': ['openpaperwork_gtk.screenshots'],
-            },
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=["openpaperwork_gtk.fs.gio"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkResources,
+                defaults=['openpaperwork_gtk.resources'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Screenshot,
+                defaults=['openpaperwork_gtk.screenshots'],
+            ),
         ]
 
     def chkdeps(self, out: dict):

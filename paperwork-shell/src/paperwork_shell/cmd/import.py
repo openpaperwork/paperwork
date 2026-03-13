@@ -40,29 +40,29 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": Fs,
-                "defaults": ["openpaperwork_gtk.fs.gio"],
-            },
-            {
-                'interface': DocLabels,
-                'defaults': ['paperwork_backend.model.labels'],
-            },
-            {
-                'interface': DocTransactionManager,
-                'defaults': ['paperwork_backend.sync'],
-            },
-            {
-                "interface": ImporterFactory,
-                "defaults": [
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=["openpaperwork_gtk.fs.gio"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocLabels,
+                defaults=['paperwork_backend.model.labels'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocTransactionManager,
+                defaults=['paperwork_backend.sync'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=ImporterFactory,
+                defaults=[
                     'paperwork_backend.docimport.img',
                     'paperwork_backend.docimport.pdf',
                 ],
-            },
-            {
-                "interface": Mainloop,
-                "defaults": ["openpaperwork_gtk.mainloop.glib"],
-            },
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=["openpaperwork_gtk.mainloop.glib"],
+            ),
         ]
 
     def cmd_complete_argparse(self, parser):

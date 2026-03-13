@@ -106,14 +106,14 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": DocLabels,
-                "defaults": ["paperwork_backend.model.labels"],
-            },
-            {
-                "interface": DocLabelColors,
-                "defaults": ["paperwork_backend.model.labels"],
-            },
+            openpaperwork_core.Dependency(
+                interface=DocLabels,
+                defaults=["paperwork_backend.model.labels"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocLabelColors,
+                defaults=["paperwork_backend.model.labels"],
+            ),
         ]
 
     def format_labels(self, labels, separator='\n'):

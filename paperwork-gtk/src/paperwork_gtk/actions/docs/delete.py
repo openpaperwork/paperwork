@@ -41,36 +41,36 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': AppActionCollector,
-                'defaults': ['paperwork_gtk.mainwindow.window'],
-            },
-            {
-                "interface": DocOpener,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                'interface': DocSelection,
-                'defaults': ['paperwork_gtk.doc_selection'],
-            },
-            {
-                'interface': DocStorage,
-                'defaults': ['paperwork_backend.model.workdir'],
-            },
-            {
-                'interface': GtkYesNoDialog,
-                'defaults': ['openpaperwork_gtk.dialogs.yes_no'],
-            },
-            {
-                'interface': DocTransactionManager,
-                'defaults': ['paperwork_backend.sync'],
-            },
-            {
-                "interface": Search,
-                "defaults": [],
-                "optional": True,
-            },
+            openpaperwork_core.Dependency(
+                interface=AppActionCollector,
+                defaults=['paperwork_gtk.mainwindow.window'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocOpener,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocSelection,
+                defaults=['paperwork_gtk.doc_selection'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocStorage,
+                defaults=['paperwork_backend.model.workdir'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkYesNoDialog,
+                defaults=['openpaperwork_gtk.dialogs.yes_no'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocTransactionManager,
+                defaults=['paperwork_backend.sync'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Search,
+                defaults=[],
+                optional=True,
+            ),
         ]
 
     def __init__(self, core):

@@ -37,22 +37,22 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                'interface': AppActionCollector,
-                'defaults': ['paperwork_gtk.mainwindow.window'],
-            },
-            {
-                'interface': DocTransactionManager,
-                'defaults': ['paperwork_backend.sync'],
-            },
-            {
-                'interface': Ocr,
-                'defaults': ['paperwork_backend.guesswork.ocr.pyocr'],
-            },
-            {
-                'interface': OcrSettings,
-                'defaults': ['paperwork_backend.pyocr'],
-            },
+            openpaperwork_core.Dependency(
+                interface=AppActionCollector,
+                defaults=['paperwork_gtk.mainwindow.window'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocTransactionManager,
+                defaults=['paperwork_backend.sync'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Ocr,
+                defaults=['paperwork_backend.guesswork.ocr.pyocr'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=OcrSettings,
+                defaults=['paperwork_backend.pyocr'],
+            ),
         ]
 
     def __init__(self, core):

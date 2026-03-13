@@ -10,6 +10,7 @@ from openpaperwork_core.interfaces.frozen import Frozen
 from openpaperwork_core.interfaces.fs import Fs
 from openpaperwork_core.interfaces.l10n import L10n
 from openpaperwork_core.interfaces.resources import Resources
+import openpaperwork_core
 
 
 LOGGER = logging.getLogger(__name__)
@@ -22,19 +23,19 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
+            openpaperwork_core.Dependency(
                 # if frozen, we need sys._MEIPASS to be set correctly
-                'interface': Frozen,
-                'defaults': ['openpaperwork_core.frozen'],
-            },
-            {
-                'interface': Fs,
-                'defaults': ['openpaperwork_core.fs.python'],
-            },
-            {
-                'interface': Resources,
-                'defaults': ['openpaperwork_core.resources.setuptools'],
-            },
+                interface=Frozen,
+                defaults=['openpaperwork_core.frozen'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=['openpaperwork_core.fs.python'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Resources,
+                defaults=['openpaperwork_core.resources.setuptools'],
+            ),
         ]
 
     def __init__(self, core):

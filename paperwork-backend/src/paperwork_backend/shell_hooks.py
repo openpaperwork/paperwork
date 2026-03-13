@@ -51,14 +51,14 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': Config,
-                'defaults': ['openpaperwork_core.config'],
-            },
-            {
-                'interface': DocTracker,
-                'defaults': ['paperwork_backend.doctracker'],
-            },
+            openpaperwork_core.Dependency(
+                interface=Config,
+                defaults=['openpaperwork_core.config'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocTracker,
+                defaults=['paperwork_backend.doctracker'],
+            ),
         ]
 
     def __init__(self, core):

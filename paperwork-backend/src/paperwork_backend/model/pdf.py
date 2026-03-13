@@ -362,38 +362,38 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': Fs,
-                'defaults': ['openpaperwork_gtk.fs.gio'],
-            },
-            {
-                'interface': Mainloop,
-                'defaults': ['openpaperwork_gtk.mainloop.glib'],
-            },
-            {
-                'interface': DocStorage,
-                'defaults': ['paperwork_backend.model.workdir'],
-            },
-            {
-                "interface": Perfcheck,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                'interface': Pillow,
-                'defaults': [
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=['openpaperwork_gtk.fs.gio'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=['openpaperwork_gtk.mainloop.glib'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocStorage,
+                defaults=['paperwork_backend.model.workdir'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Perfcheck,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=Pillow,
+                defaults=[
                     'openpaperwork_core.pillow.img',
                     'paperwork_backend.pillow.pdf',
                 ],
-            },
-            {
-                'interface': Poppler,
-                'defaults': ['paperwork_backend.poppler.memory'],
-            },
-            {
-                'interface': Urls,
-                'defaults': ['openpaperwork_core.urls'],
-            },
+            ),
+            openpaperwork_core.Dependency(
+                interface=Poppler,
+                defaults=['paperwork_backend.poppler.memory'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Urls,
+                defaults=['openpaperwork_core.urls'],
+            ),
         ]
 
     def __init__(self, core):

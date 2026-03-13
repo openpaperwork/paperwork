@@ -100,26 +100,26 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return BaseFileImporter.get_deps() + openpaperwork_core.promise.get_deps() + [
-            {
-                "interface": DocConverted,
-                "defaults": ["paperwork_backend.model.converted"],
-            },
-            {
-                "interface": DocConverter,
-                "defaults": ["paperwork_backend.converter.libreoffice"],
-            },
-            {
-                "interface": Fs,
-                "defaults": ["openpaperwork_gtk.fs.gio"],
-            },
-            {
-                "interface": Index,
-                "defaults": ["paperwork_backend.index.whoosh"],
-            },
-            {
-                "interface": Mainloop,
-                "defaults": ["openpaperwork_gtk.mainloop.glib"],
-            },
+            openpaperwork_core.Dependency(
+                interface=DocConverted,
+                defaults=["paperwork_backend.model.converted"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocConverter,
+                defaults=["paperwork_backend.converter.libreoffice"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=["openpaperwork_gtk.fs.gio"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Index,
+                defaults=["paperwork_backend.index.whoosh"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=["openpaperwork_gtk.mainloop.glib"],
+            ),
         ]
 
     def __init__(self, core):

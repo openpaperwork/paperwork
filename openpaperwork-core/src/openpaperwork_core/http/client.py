@@ -121,18 +121,18 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                'interface': App,
-                'defaults': ['openpaperwork_core.app'],
-            },
-            {
-                'interface': Config,
-                'defaults': ['openpaperwork_core.config'],
-            },
-            {
-                "interface": Mainloop,
-                "defaults": ["openpaperwork_core.mainloop.asyncio"],
-            },
+            openpaperwork_core.Dependency(
+                interface=App,
+                defaults=['openpaperwork_core.app'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Config,
+                defaults=['openpaperwork_core.config'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=["openpaperwork_core.mainloop.asyncio"],
+            ),
         ]
 
     def http_json_get_client(self, module_name):

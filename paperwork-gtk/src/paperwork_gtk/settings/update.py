@@ -21,22 +21,22 @@ class Plugin(openpaperwork_core.PluginBase, SettingsDialogComponent):
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': Config,
-                'defaults': ['openpaperwork_core.config'],
-            },
-            {
-                'interface': UpdateDetection,
-                'defaults': ['paperwork_backend.beacon.update'],
-            },
-            {
-                'interface': GtkResources,
-                'defaults': ['openpaperwork_gtk.resources'],
-            },
-            {
-                "interface": SettingsDialog,
-                "defaults": ["paperwork_gtk.settings"],
-            },
+            openpaperwork_core.Dependency(
+                interface=Config,
+                defaults=['openpaperwork_core.config'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=UpdateDetection,
+                defaults=['paperwork_backend.beacon.update'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkResources,
+                defaults=['openpaperwork_gtk.resources'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=SettingsDialog,
+                defaults=["paperwork_gtk.settings"],
+            ),
         ]
 
     def complete_settings(self, global_widget_tree):

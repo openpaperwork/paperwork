@@ -27,23 +27,23 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': DocLabelColors,
-                'defaults': ['paperwork_backend.model.labels'],
-            },
-            {
-                'interface': DocLabels,
-                'defaults': ['paperwork_backend.model.labels'],
-            },
-            {
-                'interface': DocStorage,
-                'defaults': ['paperwork_backend.model.workdir'],
-            },
-            {
-                "interface": ProgressListener,
-                "defaults": [],
-                "optional": True,
-            },
+            openpaperwork_core.Dependency(
+                interface=DocLabelColors,
+                defaults=['paperwork_backend.model.labels'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocLabels,
+                defaults=['paperwork_backend.model.labels'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocStorage,
+                defaults=['paperwork_backend.model.workdir'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=ProgressListener,
+                defaults=[],
+                optional=True,
+            ),
         ]
 
     @staticmethod

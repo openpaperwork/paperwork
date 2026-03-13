@@ -24,14 +24,14 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': AppActionCollector,
-                'defaults': ['paperwork_gtk.mainwindow.window'],
-            },
-            {
-                "interface": GtkBugReportDisplay,
-                "defaultS": ["openpaperwork_gtk.bug_report"],
-            },
+            openpaperwork_core.Dependency(
+                interface=AppActionCollector,
+                defaults=['paperwork_gtk.mainwindow.window'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkBugReportDisplay,
+                defaults=["openpaperwork_gtk.bug_report"],
+            ),
         ]
 
     def __init__(self, core):

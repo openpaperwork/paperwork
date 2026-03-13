@@ -52,72 +52,72 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                "interface": ActivityListener,
-                "defaults": [],
-            },
-            {
-                "interface": Config,
-                "defaults": ["openpaperwork_core.config"],
-            },
-            {
-                'interface': Url2Cairo,
-                'defaults': [
+            openpaperwork_core.Dependency(
+                interface=ActivityListener,
+                defaults=[],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Config,
+                defaults=["openpaperwork_core.config"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Url2Cairo,
+                defaults=[
                     'paperwork_backend.cairo.pillow',
                     'paperwork_backend.cairo.poppler',
                 ],
-            },
-            {
-                'interface': ExportPipes,
-                'defaults': [
+            ),
+            openpaperwork_core.Dependency(
+                interface=ExportPipes,
+                defaults=[
                     'paperwork_backend.docexport.img',
                     'paperwork_backend.docexport.pdf',
                     'paperwork_backend.docexport.pillowfight',
                 ],
-            },
-            {
-                'interface': Fs,
-                'defaults': ['openpaperwork_gtk.fs.gio'],
-            },
-            {
-                "interface": Mainloop,
-                "defaults": ["openpaperwork_gtk.mainloop.glib"],
-            },
-            {
-                'interface': MainWindow,
-                'defaults': ['paperwork_gtk.mainwindow.window'],
-            },
-            {
-                'interface': GtkResources,
-                'defaults': ['openpaperwork_gtk.resources'],
-            },
-            {
-                'interface': Zoom,
-                'defaults': ['paperwork_gtk.gesture.zoom'],
-            },
-            {
-                'interface': I18n,
-                'defaults': ['openpaperwork_core.i18n.python'],
-            },
-            {
-                'interface': Notifications,
-                'defaults': [
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=['openpaperwork_gtk.fs.gio'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=["openpaperwork_gtk.mainloop.glib"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=MainWindow,
+                defaults=['paperwork_gtk.mainwindow.window'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkResources,
+                defaults=['openpaperwork_gtk.resources'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Zoom,
+                defaults=['paperwork_gtk.gesture.zoom'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=I18n,
+                defaults=['openpaperwork_core.i18n.python'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Notifications,
+                defaults=[
                     'paperwork_gtk.notifications.dialog',
                     'paperwork_gtk.notifications.notify',
                 ],
-            },
-            {
-                'interface': WorkQueue,
-                'defaults': ['openpaperwork_core.work_queue.default'],
-            },
-            {
-                'interface': ExternalApps,
-                'defaults': [
+            ),
+            openpaperwork_core.Dependency(
+                interface=WorkQueue,
+                defaults=['openpaperwork_core.work_queue.default'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=ExternalApps,
+                defaults=[
                     'openpaperwork_core.external_apps.dbus',
                     'openpaperwork_core.external_apps.windows',
                     'openpaperwork_core.external_apps.xdg',
                 ],
-            },
+            ),
         ]
 
     def __init__(self, core):

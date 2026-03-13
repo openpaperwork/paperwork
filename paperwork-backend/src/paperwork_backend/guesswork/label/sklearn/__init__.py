@@ -115,58 +115,58 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                'interface': Config,
-                'defaults': ['openpaperwork_core.config'],
-            },
-            {
-                'interface': DataDirHandler,
-                'defaults': ['paperwork_backend.datadirhandler'],
-            },
-            {
-                'interface': DataVersioning,
-                'defaults': ['openpaperwork_core.data_versioning'],
-            },
-            {
-                'interface': DocLabels,
-                'defaults': ['paperwork_backend.model.labels'],
-            },
-            {
-                'interface': DocStorage,
-                'defaults': ['paperwork_backend.model.workdir'],
-            },
-            {
-                "interface": DocText,
-                "defaults": [
+            openpaperwork_core.Dependency(
+                interface=Config,
+                defaults=['openpaperwork_core.config'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DataDirHandler,
+                defaults=['paperwork_backend.datadirhandler'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DataVersioning,
+                defaults=['openpaperwork_core.data_versioning'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocLabels,
+                defaults=['paperwork_backend.model.labels'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocStorage,
+                defaults=['paperwork_backend.model.workdir'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocText,
+                defaults=[
                     "paperwork_backend.model.hocr",
                     "paperwork_backend.model.pdf",
                 ],
-            },
-            {
-                'interface': DocTracker,
-                'defaults': ['paperwork_backend.sync.doctracker'],
-            },
-            {
-                'interface': DocTransactionManager,
-                'defaults': ['paperwork_backend.sync'],
-            },
-            {
-                'interface': Fs,
-                'defaults': ['openpaperwork_gtk.fs.gio'],
-            },
-            {
-                "interface": ProgressListener,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                'interface': Sqlite,
-                'defaults': ['openpaperwork_core.sqlite'],
-            },
-            {
-                'interface': WorkQueue,
-                'defaults': ['openpaperwork_core.work_queue.default'],
-            },
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocTracker,
+                defaults=['paperwork_backend.sync.doctracker'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocTransactionManager,
+                defaults=['paperwork_backend.sync'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=['openpaperwork_gtk.fs.gio'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=ProgressListener,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=Sqlite,
+                defaults=['openpaperwork_core.sqlite'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=WorkQueue,
+                defaults=['openpaperwork_core.work_queue.default'],
+            ),
         ]
 
     def __init__(self, core):

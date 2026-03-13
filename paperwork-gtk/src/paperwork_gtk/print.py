@@ -232,28 +232,28 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                "interface": Docs,
-                "defaults": ["paperwork_backend.model"],
-            },
-            {
-                "interface": PageImg,
-                "defaults": [
+            openpaperwork_core.Dependency(
+                interface=Docs,
+                defaults=["paperwork_backend.model"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageImg,
+                defaults=[
                     "paperwork_backend.model.img",
                     "paperwork_backend.model.pdf",
                 ],
-            },
-            {
-                'interface': Url2Cairo,
-                'defaults': [
+            ),
+            openpaperwork_core.Dependency(
+                interface=Url2Cairo,
+                defaults=[
                     'paperwork_backend.cairo.pillow',
                     'paperwork_backend.cairo.poppler',
                 ],
-            },
-            {
-                'interface': WorkQueue,
-                'defaults': ['openpaperwork_core.work_queue.default'],
-            },
+            ),
+            openpaperwork_core.Dependency(
+                interface=WorkQueue,
+                defaults=['openpaperwork_core.work_queue.default'],
+            ),
         ]
 
     def __init__(self, core):

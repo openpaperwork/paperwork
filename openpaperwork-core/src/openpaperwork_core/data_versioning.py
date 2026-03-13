@@ -27,19 +27,19 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": DataVersioningListener,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                'interface': Fs,
-                'defaults': ['openpaperwork_core.fs.python'],
-            },
-            {
-                'interface': Paths,
-                'defaults': ['openpaperwork_core.paths.xdg'],
-            },
+            openpaperwork_core.Dependency(
+                interface=DataVersioningListener,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=['openpaperwork_core.fs.python'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Paths,
+                defaults=['openpaperwork_core.paths.xdg'],
+            ),
         ]
 
     def __init__(self, core):

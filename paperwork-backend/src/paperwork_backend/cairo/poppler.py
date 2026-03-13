@@ -225,28 +225,28 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                "interface": MemleakDetector,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                "interface": Perfcheck,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                'interface': Poppler,
-                'defaults': ['paperwork_backend.poppler.memory'],
-            },
-            {
-                'interface': Urls,
-                'defaults': ['openpaperwork_core.urls'],
-            },
-            {
-                "interface": WorkQueue,
-                "defaults": ["openpaperwork_core.work_queue.default"],
-            },
+            openpaperwork_core.Dependency(
+                interface=MemleakDetector,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=Perfcheck,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=Poppler,
+                defaults=['paperwork_backend.poppler.memory'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Urls,
+                defaults=['openpaperwork_core.urls'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=WorkQueue,
+                defaults=["openpaperwork_core.work_queue.default"],
+            ),
         ]
 
     def chkdeps(self, out: dict):

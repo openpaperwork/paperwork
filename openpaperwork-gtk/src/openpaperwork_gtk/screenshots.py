@@ -42,26 +42,26 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                'interface': FileArchives,
-                'defaults': ['openpaperwork_core.archives'],
-            },
-            {
-                'interface': Fs,
-                'defaults': [
+            openpaperwork_core.Dependency(
+                interface=FileArchives,
+                defaults=['openpaperwork_core.archives'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=[
                     'openpaperwork_core.fs.memory',
                     'openpaperwork_core.fs.python',
                 ],
-            },
-            {
-                "interface": Mainloop,
-                "defaults": ["openpaperwork_gtk.mainloop.glib"],
-            },
-            {
-                "interface": ScreenshotListener,
-                "defaults": [],
-                "optional": True,
-            },
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=["openpaperwork_gtk.mainloop.glib"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=ScreenshotListener,
+                defaults=[],
+                optional=True,
+            ),
         ]
 
     def __init__(self, core):

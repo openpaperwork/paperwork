@@ -25,14 +25,14 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': AppShortcutHelp,
-                'defaults': ['paperwork_gtk.shortcutswin'],
-            },
-            {
-                'interface': AppActionCollector,
-                'defaults': ['paperwork_gtk.mainwindow.window'],
-            },
+            openpaperwork_core.Dependency(
+                interface=AppShortcutHelp,
+                defaults=['paperwork_gtk.shortcutswin'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=AppActionCollector,
+                defaults=['paperwork_gtk.mainwindow.window'],
+            ),
         ]
 
     def __init__(self, core):

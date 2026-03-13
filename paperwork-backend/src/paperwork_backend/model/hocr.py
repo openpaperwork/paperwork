@@ -37,20 +37,20 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return util.get_deps() + [
-            {
-                'interface': Fs,
-                'defaults': ['openpaperwork_gtk.fs.gio'],
-            },
-            {
-                "interface": Docs,
-                "defaults": ["paperwork_backend.model"],
-                "optional": True,
-            },
-            {
-                "interface": Perfcheck,
-                "defaults": [],
-                "optional": True,
-            },
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=['openpaperwork_gtk.fs.gio'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Docs,
+                defaults=["paperwork_backend.model"],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=Perfcheck,
+                defaults=[],
+                optional=True,
+            ),
         ]
 
     def doc_internal_get_mtime_by_url(self, out: list, doc_url):

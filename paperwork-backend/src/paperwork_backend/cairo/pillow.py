@@ -300,19 +300,19 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                'interface': Pillow,
-                'defaults': ['openpaperwork_core.pillow.img'],
-            },
-            {
-                "interface": MemleakDetector,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                'interface': WorkQueue,
-                'defaults': ['openpaperwork_core.work_queue.default'],
-            },
+            openpaperwork_core.Dependency(
+                interface=Pillow,
+                defaults=['openpaperwork_core.pillow.img'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=MemleakDetector,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=WorkQueue,
+                defaults=['openpaperwork_core.work_queue.default'],
+            ),
         ]
 
     def chkdeps(self, out: dict):

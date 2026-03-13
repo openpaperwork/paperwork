@@ -209,14 +209,14 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': Fs,
-                'defaults': ['openpaperwork_core.fs.python'],
-            },
-            {
-                'interface': Paths,
-                'defaults': ['openpaperwork_core.paths.xdg'],
-            },
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=['openpaperwork_core.fs.python'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Paths,
+                defaults=['openpaperwork_core.paths.xdg'],
+            ),
         ]
 
     def __init__(self, core, config_path=None, base_path=None):

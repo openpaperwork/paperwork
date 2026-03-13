@@ -19,22 +19,22 @@ class Plugin(openpaperwork_core.PluginBase, GtkSettingsOcr):
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': Config,
-                'defaults': ['openpaperwork_core.config'],
-            },
-            {
-                'interface': I18nLang,
-                'defaults': ['paperwork_backend.i18n.pycountry'],
-            },
-            {
-                'interface': OcrSettings,
-                'defaults': ['paperwork_backend.pyocr'],
-            },
-            {
-                'interface': GtkResources,
-                'defaults': ['openpaperwork_gtk.resources'],
-            },
+            openpaperwork_core.Dependency(
+                interface=Config,
+                defaults=['openpaperwork_core.config'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=I18nLang,
+                defaults=['paperwork_backend.i18n.pycountry'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=OcrSettings,
+                defaults=['paperwork_backend.pyocr'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkResources,
+                defaults=['openpaperwork_gtk.resources'],
+            ),
         ]
 
     def complete_ocr_settings(self, parent_widget_tree):

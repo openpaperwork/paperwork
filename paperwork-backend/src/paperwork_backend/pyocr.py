@@ -153,22 +153,22 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': Config,
-                'defaults': ['openpaperwork_core.config'],
-            },
-            {
-                "interface": Fs,
-                "defaults": ["openpaperwork_gtk.fs.glib"],
-            },
-            {
-                'interface': Paths,
-                'defaults': ['openpaperwork_core.paths.xdg'],
-            },
-            {
-                'interface': DataVersioning,
-                'defaults': ['openpaperwork_core.data_versioning'],
-            },
+            openpaperwork_core.Dependency(
+                interface=Config,
+                defaults=['openpaperwork_core.config'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=["openpaperwork_gtk.fs.glib"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Paths,
+                defaults=['openpaperwork_core.paths.xdg'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DataVersioning,
+                defaults=['openpaperwork_core.data_versioning'],
+            ),
         ]
 
     def __init__(self, core):

@@ -33,28 +33,28 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                'interface': Fs,
-                'defaults': ['openpaperwork_core.fs.python']
-            },
-            {
-                'interface': Mainloop,
-                'defaults': ['openpaperwork_core.mainloop.asyncio'],
-            },
-            {
-                "interface": MemleakDetector,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                "interface": Perfcheck,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                'interface': PillowUtil,
-                'defaults': ['openpaperwork_core.pillow.util'],
-            },
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=['openpaperwork_core.fs.python']
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=['openpaperwork_core.mainloop.asyncio'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=MemleakDetector,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=Perfcheck,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=PillowUtil,
+                defaults=['openpaperwork_core.pillow.util'],
+            ),
         ]
 
     def _check_is_img(self, file_url):

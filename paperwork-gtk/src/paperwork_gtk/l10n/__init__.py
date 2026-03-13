@@ -11,10 +11,10 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': L10n,
-                'defaults': ['openpaperwork_core.l10n.python'],
-            },
+            openpaperwork_core.Dependency(
+                interface=L10n,
+                defaults=['openpaperwork_core.l10n.python'],
+            ),
         ]
 
     def __init__(self, core):

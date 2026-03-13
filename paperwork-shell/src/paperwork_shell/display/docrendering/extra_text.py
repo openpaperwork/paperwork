@@ -66,10 +66,10 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': DocExtraText,
-                'defaults': ['paperwork_backend.model.extra_text'],
-            },
+            openpaperwork_core.Dependency(
+                interface=DocExtraText,
+                defaults=['paperwork_backend.model.extra_text'],
+            ),
         ]
 
     def doc_renderer_get(self, out):

@@ -95,26 +95,26 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                'interface': DocLabelColors,
-                'defaults': ['paperwork_backend.model.labels'],
-            },
-            {
-                'interface': DocStorage,
-                'defaults': ['paperwork_backend.model.workdir'],
-            },
-            {
-                'interface': LabelFactory,
-                'defaults': ['paperwork_gtk.widget.label'],
-            },
-            {
-                'interface': I18n,
-                'defaults': ['openpaperwork_core.i18n.python'],
-            },
-            {
-                'interface': WorkQueue,
-                'defaults': ['openpaperwork_core.work_queue.default'],
-            },
+            openpaperwork_core.Dependency(
+                interface=DocLabelColors,
+                defaults=['paperwork_backend.model.labels'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocStorage,
+                defaults=['paperwork_backend.model.workdir'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=LabelFactory,
+                defaults=['paperwork_gtk.widget.label'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=I18n,
+                defaults=['openpaperwork_core.i18n.python'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=WorkQueue,
+                defaults=['openpaperwork_core.work_queue.default'],
+            ),
         ]
 
     def __init__(self, core):

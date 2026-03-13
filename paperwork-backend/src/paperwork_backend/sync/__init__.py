@@ -21,15 +21,15 @@ class BaseTransaction(AbstractDocTransaction):
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": Mainloop,
-                "defaults": ["openpaperwork_core.mainloop.asyncio"],
-            },
-            {
-                "interface": ProgressListener,
-                "defaults": [],
-                "optional": True,
-            },
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=["openpaperwork_core.mainloop.asyncio"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=ProgressListener,
+                defaults=[],
+                optional=True,
+            ),
         ]
 
     def __init__(self, core, total_expected):
@@ -98,35 +98,35 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                "interface": DocStorage,
-                "defaults": ["paperwork_backend.model.workdir"],
-            },
-            {
-                "interface": DocTransactionFactory,
-                "defaults": ["paperwork_backend.sync.doctracker"],
-                "optional": True,
-            },
-            {
-                "interface": DocType,
-                "defaults": [
+            openpaperwork_core.Dependency(
+                interface=DocStorage,
+                defaults=["paperwork_backend.model.workdir"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocTransactionFactory,
+                defaults=["paperwork_backend.sync.doctracker"],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocType,
+                defaults=[
                     "paperwork_backend.model.img",
                     "paperwork_backend.model.pdf",
                 ],
-            },
-            {
-                "interface": Mainloop,
-                "defaults": ["openpaperwork_gtk.mainloop.glib"],
-            },
-            {
-                'interface': WorkQueue,
-                'defaults': ['openpaperwork_core.work_queue.default'],
-            },
-            {
-                "interface": Syncable,
-                "defaults": [],
-                "optional": True,
-            },
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=["openpaperwork_gtk.mainloop.glib"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=WorkQueue,
+                defaults=['openpaperwork_core.work_queue.default'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Syncable,
+                defaults=[],
+                optional=True,
+            ),
         ]
 
     def __init__(self, core):

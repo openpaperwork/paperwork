@@ -32,22 +32,22 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": Docs,
-                "defaults": ["paperwork_backend.model"],
-            },
-            {
-                "interface": DocStorage,
-                "defaults": ["paperwork_backend.model.workdir"],
-            },
-            {
-                "interface": Ocr,
-                "defaults": ['paperwork_backend.guesswork.ocr.pyocr'],
-            },
-            {
-                "interface": OcrSettings,
-                "defaults": ['paperwork_backend.pyocr'],
-            },
+            openpaperwork_core.Dependency(
+                interface=Docs,
+                defaults=["paperwork_backend.model"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocStorage,
+                defaults=["paperwork_backend.model.workdir"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Ocr,
+                defaults=['paperwork_backend.guesswork.ocr.pyocr'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=OcrSettings,
+                defaults=['paperwork_backend.pyocr'],
+            ),
         ]
 
     def cmd_complete_argparse(self, parser):

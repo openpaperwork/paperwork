@@ -19,10 +19,10 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': Fs,
-                'defaults': ['openpaperwork_core.fs.python'],
-            },
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=['openpaperwork_core.fs.python'],
+            ),
         ]
 
     def external_app_open_file(self, file_url):

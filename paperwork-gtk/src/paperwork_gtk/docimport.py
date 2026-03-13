@@ -54,53 +54,53 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": Docs,
-                "defaults": ["paperwork_backend.model"],
-            },
-            {
-                'interface': DocStorage,
-                'defaults': ['paperwork_backend.model.workdir'],
-            },
-            {
-                'interface': DocTransactionManager,
-                'defaults': ['paperwork_backend.sync'],
-            },
-            {
-                "interface": DocType,
-                "defaults": [
+            openpaperwork_core.Dependency(
+                interface=Docs,
+                defaults=["paperwork_backend.model"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocStorage,
+                defaults=['paperwork_backend.model.workdir'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocTransactionManager,
+                defaults=['paperwork_backend.sync'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocType,
+                defaults=[
                     "paperwork_backend.model.img",
                     "paperwork_backend.model.hocr",
                     "paperwork_backend.model.pdf",
                 ],
-            },
-            {
-                "interface": Fs,
-                "defaults": ["openpaperwork_gtk.fs.gio"],
-            },
-            {
-                'interface': GtkSingleEntryDialog,
-                'defaults': ['openpaperwork_gtk.dialogs.single_entry'],
-            },
-            {
-                'interface': ImporterFactory,
-                'defaults': [
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=["openpaperwork_gtk.fs.gio"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkSingleEntryDialog,
+                defaults=['openpaperwork_gtk.dialogs.single_entry'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=ImporterFactory,
+                defaults=[
                     'paperwork_backend.docimport.img',
                     'paperwork_backend.docimport.pdf',
                 ],
-            },
-            {
-                "interface": Mainloop,
-                "defaults": ["openpaperwork_gtk.mainloop.glib"],
-            },
-            {
-                'interface': Notifications,
-                'defaults': ['paperwork_gtk.notifications.dialog'],
-            },
-            {
-                "interface": DocViewer,
-                "defaults": [],
-            },
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=["openpaperwork_gtk.mainloop.glib"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Notifications,
+                defaults=['paperwork_gtk.notifications.dialog'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocViewer,
+                defaults=[],
+            ),
         ]
 
     def __init__(self, core):

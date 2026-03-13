@@ -38,48 +38,48 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                "interface": AdvancedSearchDialog,
-                "defaults": ["paperwork_gtk.mainwindow.search.advanced"],
-                "optional": True,  # TO FIX: to prevent dependency cycles
-            },
-            {
-                'interface': DocStorage,
-                'defaults': ['paperwork_backend.model.workdir'],
-            },
-            {
-                "interface": Fs,
-                "defaults": ["openpaperwork_gtk.fs.gio"],
-            },
-            {
-                'interface': Index,
-                'defaults': ['paperwork_backend.index.whoosh'],
-            },
-            {
-                'interface': DocList,
-                'defaults': ['paperwork_gtk.mainwindow.doclist'],
-            },
-            {
-                'interface': GtkResources,
-                'defaults': ['openpaperwork_gtk.resources'],
-            },
-            {
-                'interface': Mainloop,
-                'defaults': ['openpaperwork_gtk.mainloop.glib'],
-            },
-            {
-                'interface': WorkQueue,
-                'defaults': ['openpaperwork_core.work_queue.default'],
-            },
-            {
-                'interface': Screenshot,
-                'defaults': ['openpaperwork_gtk.screenshots'],
-            },
-            {
-                "interface": SearchResultsListener,
-                "defaults": [],
-                "optional": True,
-            },
+            openpaperwork_core.Dependency(
+                interface=AdvancedSearchDialog,
+                defaults=["paperwork_gtk.mainwindow.search.advanced"],
+                optional=True,  # TO FIX: to prevent dependency cycles
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocStorage,
+                defaults=['paperwork_backend.model.workdir'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=["openpaperwork_gtk.fs.gio"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Index,
+                defaults=['paperwork_backend.index.whoosh'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocList,
+                defaults=['paperwork_gtk.mainwindow.doclist'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkResources,
+                defaults=['openpaperwork_gtk.resources'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=['openpaperwork_gtk.mainloop.glib'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=WorkQueue,
+                defaults=['openpaperwork_core.work_queue.default'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Screenshot,
+                defaults=['openpaperwork_gtk.screenshots'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=SearchResultsListener,
+                defaults=[],
+                optional=True,
+            ),
         ]
 
     def __init__(self, core):

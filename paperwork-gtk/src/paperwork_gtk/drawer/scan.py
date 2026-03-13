@@ -203,15 +203,15 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": ActivityListener,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                'interface': Pillow2Cairo,
-                'defaults': ['paperwork_backend.cairo.pillow'],
-            },
+            openpaperwork_core.Dependency(
+                interface=ActivityListener,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=Pillow2Cairo,
+                defaults=['paperwork_backend.cairo.pillow'],
+            ),
         ]
 
     def __init__(self, core):

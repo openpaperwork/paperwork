@@ -21,14 +21,14 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': DocActions,
-                'defaults': ['paperwork_gtk.mainwindow.doclist'],
-            },
-            {
-                'interface': DocProperties,
-                'defaults': ['paperwork_gtk.mainwindow.docproperties'],
-            },
+            openpaperwork_core.Dependency(
+                interface=DocActions,
+                defaults=['paperwork_gtk.mainwindow.doclist'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocProperties,
+                defaults=['paperwork_gtk.mainwindow.docproperties'],
+            ),
         ]
 
     def __init__(self, core):

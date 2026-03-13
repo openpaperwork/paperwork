@@ -14,14 +14,14 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': GtkResources,
-                'defaults': ['openpaperwork_gtk.resources'],
-            },
-            {
-                'interface': I18n,
-                'defaults': ['openpaperwork_core.i18n.python'],
-            },
+            openpaperwork_core.Dependency(
+                interface=GtkResources,
+                defaults=['openpaperwork_gtk.resources'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=I18n,
+                defaults=['openpaperwork_core.i18n.python'],
+            ),
         ]
 
     def add_popover(self, gtk_entry):

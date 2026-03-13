@@ -29,30 +29,30 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': GtkResources,
-                'defaults': ['openpaperwork_gtk.resources'],
-            },
-            {
-                'interface': DocViewer,
-                'defaults': ['paperwork_gtk.mainwindow.docview'],
-            },
-            {
-                'interface': Fs,
-                'defaults': ['openpaperwork_gtk.fs.gio'],
-            },
-            {
-                'interface': NewDoc,
-                'defaults': ['paperwork_gtk.new_doc'],
-            },
-            {
-                'interface': Screenshot,
-                'defaults': ['openpaperwork_gtk.screenshots'],
-            },
-            {
-                "interface": WidgetActivity,
-                "defaults": ["openpaperwork_gtk.busy.mouse"],
-            },
+            openpaperwork_core.Dependency(
+                interface=GtkResources,
+                defaults=['openpaperwork_gtk.resources'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocViewer,
+                defaults=['paperwork_gtk.mainwindow.docview'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=['openpaperwork_gtk.fs.gio'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=NewDoc,
+                defaults=['paperwork_gtk.new_doc'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Screenshot,
+                defaults=['openpaperwork_gtk.screenshots'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=WidgetActivity,
+                defaults=["openpaperwork_gtk.busy.mouse"],
+            ),
         ]
 
     def __init__(self, core):

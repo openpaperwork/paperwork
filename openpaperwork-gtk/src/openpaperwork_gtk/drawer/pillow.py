@@ -69,10 +69,10 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': Pillow2Cairo,
-                'defaults': ['paperwork_backend.cairo.pillow'],
-            },
+            openpaperwork_core.Dependency(
+                interface=Pillow2Cairo,
+                defaults=['paperwork_backend.cairo.pillow'],
+            ),
         ]
 
     def __init__(self, core):

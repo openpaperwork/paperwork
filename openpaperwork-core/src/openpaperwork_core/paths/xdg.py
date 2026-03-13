@@ -13,14 +13,14 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': App,
-                'defaults': ['openpaperwork_core.app'],
-            },
-            {
-                'interface': Fs,
-                'defaults': ['openpaperwork_core.fs.python']
-            },
+            openpaperwork_core.Dependency(
+                interface=App,
+                defaults=['openpaperwork_core.app'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=['openpaperwork_core.fs.python']
+            ),
         ]
 
     def paths_get_config_dir(self):

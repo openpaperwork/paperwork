@@ -95,14 +95,14 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': DocViewer,
-                'defaults': ['paperwork_gtk.mainwindow.docview'],
-            },
-            {
-                "interface": DocViewerListener,
-                "defaults": [],
-            },
+            openpaperwork_core.Dependency(
+                interface=DocViewer,
+                defaults=['paperwork_gtk.mainwindow.docview'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocViewerListener,
+                defaults=[],
+            ),
         ]
 
     def gtk_docview_get_controllers(self, out: dict, docview):

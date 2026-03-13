@@ -31,18 +31,18 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': AppActionCollector,
-                'defaults': ['paperwork_gtk.mainwindow.window'],
-            },
-            {
-                "interface": DocSelecter,
-                "defaults": ["paperwork_gtk.mainwindow.doclist"],
-            },
-            {
-                'interface': DocSelection,
-                'defaults': ['paperwork_gtk.doc_selection'],
-            },
+            openpaperwork_core.Dependency(
+                interface=AppActionCollector,
+                defaults=['paperwork_gtk.mainwindow.window'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocSelecter,
+                defaults=["paperwork_gtk.mainwindow.doclist"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocSelection,
+                defaults=['paperwork_gtk.doc_selection'],
+            ),
         ]
 
     def __init__(self, core):

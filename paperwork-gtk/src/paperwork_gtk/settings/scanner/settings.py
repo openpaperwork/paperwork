@@ -33,44 +33,44 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': Config,
-                'defaults': ['openpaperwork_core.config'],
-            },
-            {
-                'interface': Fs,
-                'defaults': ['openpaperwork_gtk.fs.gio'],
-            },
-            {
-                'interface': GtkSettingsScannerExtra,
-                'defaults': [],
-                "optional": True,
-            },
-            {
-                "interface": GtkSettingsScannerSetting,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                'interface': L10nInit,
-                'defaults': ['paperwork_gtk.l10n'],
-            },
-            {
-                'interface': Scan,
-                'defaults': ['paperwork_backend.docscan.libinsane'],
-            },
-            {
-                'interface': GtkResources,
-                'defaults': ['openpaperwork_gtk.resources'],
-            },
-            {
-                'interface': SettingsDialog,
-                'defaults': [],
-            },
-            {
-                'interface': Screenshot,
-                'defaults': ['openpaperwork_gtk.screenshots'],
-            },
+            openpaperwork_core.Dependency(
+                interface=Config,
+                defaults=['openpaperwork_core.config'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=['openpaperwork_gtk.fs.gio'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkSettingsScannerExtra,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkSettingsScannerSetting,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=L10nInit,
+                defaults=['paperwork_gtk.l10n'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Scan,
+                defaults=['paperwork_backend.docscan.libinsane'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkResources,
+                defaults=['openpaperwork_gtk.resources'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=SettingsDialog,
+                defaults=[],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Screenshot,
+                defaults=['openpaperwork_gtk.screenshots'],
+            ),
         ]
 
     def __init__(self, core):

@@ -118,10 +118,10 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-               'interface': Mainloop,
-               'defaults': ['openpaperwork_core.mainloop.asyncio'],
-            },
+            openpaperwork_core.Dependency(
+               interface=Mainloop,
+               defaults=['openpaperwork_core.mainloop.asyncio'],
+            ),
         ]
 
     def __init__(self, core):

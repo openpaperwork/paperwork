@@ -76,32 +76,32 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                'interface': Pdf2Cairo,
-                'defaults': ['paperwork_backend.cairo.poppler'],
-            },
-            {
-                'interface': Mainloop,
-                'defaults': ['openpaperwork_gtk.mainloop.glib'],
-            },
-            {
-                "interface": MemleakDetector,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                "interface": Perfcheck,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                'interface': PillowUtil,
-                'defaults': ['openpaperwork_core.pillow.util'],
-            },
-            {
-                'interface': Urls,
-                'defaults': ['openpaperwork_core.urls'],
-            },
+            openpaperwork_core.Dependency(
+                interface=Pdf2Cairo,
+                defaults=['paperwork_backend.cairo.poppler'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=['openpaperwork_gtk.mainloop.glib'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=MemleakDetector,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=Perfcheck,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=PillowUtil,
+                defaults=['openpaperwork_core.pillow.util'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Urls,
+                defaults=['openpaperwork_core.urls'],
+            ),
         ]
 
     def _check_is_pdf(self, file_url):

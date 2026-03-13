@@ -53,39 +53,39 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": Docs,
-                "defaults": ["paperwork_backend.model"],
-            },
-            {
-                "interface": DocViewerControllerFactory,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                "interface": DocViewerListener,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                'interface': GtkResources,
-                'defaults': ['openpaperwork_gtk.resources'],
-            },
-            {
-                'interface': Mainloop,
-                'defaults': ['openpaperwork_gtk.mainloop.glib'],
-            },
-            {
-                'interface': MainWindow,
-                'defaults': ['paperwork_gtk.mainwindow.window'],
-            },
-            {
-                'interface': Zoom,
-                'defaults': [
+            openpaperwork_core.Dependency(
+                interface=Docs,
+                defaults=["paperwork_backend.model"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocViewerControllerFactory,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocViewerListener,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkResources,
+                defaults=['openpaperwork_gtk.resources'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=['openpaperwork_gtk.mainloop.glib'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=MainWindow,
+                defaults=['paperwork_gtk.mainwindow.window'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Zoom,
+                defaults=[
                     'paperwork_gtk.gesture.zoom',
                     'paperwork_gtk.keyboard_shortcut.zoom',
                 ],
-            },
+            ),
         ]
 
     def __init__(self, core):

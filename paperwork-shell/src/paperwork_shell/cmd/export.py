@@ -40,27 +40,27 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                "interface": DocStorage,
-                "defaults": ["paperwork_backend.model.workdir"],
-            },
-            {
-                "interface": Fs,
-                "defaults": ["openpaperwork_gtk.fs.gio"],
-            },
-            {
-                "interface": ExportPipes,
-                "defaults": [
+            openpaperwork_core.Dependency(
+                interface=DocStorage,
+                defaults=["paperwork_backend.model.workdir"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=["openpaperwork_gtk.fs.gio"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=ExportPipes,
+                defaults=[
                     'paperwork_backend.docexport.generic',
                     'paperwork_backend.docexport.img',
                     'paperwork_backend.docexport.pdf',
                     'paperwork_backend.docexport.pillowfight',
                 ],
-            },
-            {
-                "interface": Mainloop,
-                "defaults": ["openpaperwork_gtk.mainloop.glib"],
-            },
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=["openpaperwork_gtk.mainloop.glib"],
+            ),
         ]
 
     def cmd_set_console(self, console):

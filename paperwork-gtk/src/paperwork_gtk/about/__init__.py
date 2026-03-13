@@ -23,22 +23,22 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': Authors,
-                'defaults': ['paperwork_backend.authors'],
-            },
-            {
-                'interface': App,
-                'defaults': ['paperwork_backend.app'],
-            },
-            {
-                'interface': GtkResources,
-                'defaults': ['openpaperwork_gtk.resources'],
-            },
-            {
-                'interface': Icon,
-                'defaults': ['paperwork_gtk.icon'],
-            },
+            openpaperwork_core.Dependency(
+                interface=Authors,
+                defaults=['paperwork_backend.authors'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=App,
+                defaults=['paperwork_backend.app'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkResources,
+                defaults=['openpaperwork_gtk.resources'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Icon,
+                defaults=['paperwork_gtk.icon'],
+            ),
         ]
 
     def __init__(self, core):

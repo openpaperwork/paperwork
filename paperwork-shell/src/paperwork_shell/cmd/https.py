@@ -25,42 +25,42 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": CertificateStore,
-                "defaults": ["openpaperwork_core.crypto.certificates.store"],
-            },
-            {
-                "interface": Config,
-                "defaults": ["openpaperwork_core.config"],
-            },
-            {
-                "interface": DocTransactionManager,
-                "defaults": ["paperwork_backend.sync"],
-            },
-            {
-                "interface": Fs,
-                "defaults": ["openpaperwork_gtk.fs.gio"],
-            },
-            {
-                "interface": HttpsBackend,
-                "defaults": ["paperwork_backend.http"],
-            },
-            {
-                "interface": Mainloop,
-                "defaults": ["openpaperwork_gtk.mainloop.glib"],
-            },
-            {
-                "interface": Networking,
-                "defaults": ["openpaperwork_core.networking"],
-            },
-            {
-                "interface": Pairing,
-                "defaults": ["paperwork_backend.http.pairing"],
-            },
-            {
-                "interface": PairingQrCode,
-                "defaults": ["paperwork_backend.http.pairing"],
-            },
+            openpaperwork_core.Dependency(
+                interface=CertificateStore,
+                defaults=["openpaperwork_core.crypto.certificates.store"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Config,
+                defaults=["openpaperwork_core.config"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocTransactionManager,
+                defaults=["paperwork_backend.sync"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=["openpaperwork_gtk.fs.gio"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=HttpsBackend,
+                defaults=["paperwork_backend.http"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=["openpaperwork_gtk.mainloop.glib"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Networking,
+                defaults=["openpaperwork_core.networking"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Pairing,
+                defaults=["paperwork_backend.http.pairing"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=PairingQrCode,
+                defaults=["paperwork_backend.http.pairing"],
+            ),
         ]
 
     def cmd_complete_argparse(self, parser):

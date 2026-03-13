@@ -13,6 +13,7 @@ from openpaperwork_core.interfaces.fs import Fs
 from openpaperwork_core.interfaces.i18n import I18n
 from openpaperwork_core.interfaces.mainloop import Mainloop
 import openpaperwork_core
+import openpaperwork_core.promise
 import openpaperwork_core.util
 
 from paperwork_backend import _
@@ -220,59 +221,59 @@ class Plugin(
             openpaperwork_core.promise.get_deps()
             + paperwork_backend.sync.BaseTransaction.get_deps()
             + [
-                {
-                    "interface": DataDirHandler,
-                    "defaults": ["paperwork_backend.datadirhandler"],
-                },
-                {
-                    'interface': DataVersioning,
-                    'defaults': ['openpaperwork_core.data_versioning'],
-                },
-                {
-                    'interface': DocStorage,
-                    'defaults': ['paperwork_backend.model.workdir'],
-                },
-                {
-                    "interface": DocLabels,
-                    "defaults": ["paperwork_backend.model.labels"],
-                },
-                {
-                    "interface": DocHash,
-                    "defaults": ["paperwork_backend.model.pdf"],
-                },
-                {
-                    "interface": Docs,
-                    "defaults": ["paperwork_backend.model"],
-                },
-                {
-                    "interface": DocText,
-                    "defaults": [
+                openpaperwork_core.Dependency(
+                    interface=DataDirHandler,
+                    defaults=["paperwork_backend.datadirhandler"],
+                ),
+                openpaperwork_core.Dependency(
+                    interface=DataVersioning,
+                    defaults=['openpaperwork_core.data_versioning'],
+                ),
+                openpaperwork_core.Dependency(
+                    interface=DocStorage,
+                    defaults=['paperwork_backend.model.workdir'],
+                ),
+                openpaperwork_core.Dependency(
+                    interface=DocLabels,
+                    defaults=["paperwork_backend.model.labels"],
+                ),
+                openpaperwork_core.Dependency(
+                    interface=DocHash,
+                    defaults=["paperwork_backend.model.pdf"],
+                ),
+                openpaperwork_core.Dependency(
+                    interface=Docs,
+                    defaults=["paperwork_backend.model"],
+                ),
+                openpaperwork_core.Dependency(
+                    interface=DocText,
+                    defaults=[
                         "paperwork_backend.model.hocr",
                         "paperwork_backend.model.pdf",
                     ],
-                },
-                {
-                    'interface': Fs,
-                    'defaults': ['openpaperwork_gtk.fs.gio'],
-                },
-                {
-                    'interface': I18n,
-                    'defaults': ['openpaperwork_core.i18n.python'],
-                },
-                {
-                    "interface": IndexListener,
-                    "defaults": [],
-                    "optional": True,
-                },
-                {
-                    'interface': Mainloop,
-                    'defaults': ['openpaperwork_gtk.mainloop.glib'],
-                },
-                {
-                    "interface": SyncListener,
-                    "defaults": [],
-                    "optional": True,
-                },
+                ),
+                openpaperwork_core.Dependency(
+                    interface=Fs,
+                    defaults=['openpaperwork_gtk.fs.gio'],
+                ),
+                openpaperwork_core.Dependency(
+                    interface=I18n,
+                    defaults=['openpaperwork_core.i18n.python'],
+                ),
+                openpaperwork_core.Dependency(
+                    interface=IndexListener,
+                    defaults=[],
+                    optional=True,
+                ),
+                openpaperwork_core.Dependency(
+                    interface=Mainloop,
+                    defaults=['openpaperwork_gtk.mainloop.glib'],
+                ),
+                openpaperwork_core.Dependency(
+                    interface=SyncListener,
+                    defaults=[],
+                    optional=True,
+                ),
             ]
         )
 

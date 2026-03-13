@@ -30,16 +30,14 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': PageViewBoxes,
-                'defaults': [
-                    'paperwork_gtk.mainwindow.docview.pageview.boxes'
-                ],
-            },
-            {
-                'interface': I18n,
-                'defaults': ['openpaperwork_core.i18n.python'],
-            },
+            openpaperwork_core.Dependency(
+                interface=PageViewBoxes,
+                defaults=['paperwork_gtk.mainwindow.docview.pageview.boxes'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=I18n,
+                defaults=['openpaperwork_core.i18n.python'],
+            ),
         ]
 
     def __init__(self, core):

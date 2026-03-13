@@ -13,14 +13,14 @@ class Plugin(openpaperwork_core.PluginBase, UpdateDetectionListener):
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': Icon,
-                'defaults': ['paperwork_gtk.icon'],
-            },
-            {
-                'interface': Notifications,
-                'defaults': ['paperwork_gtk.notifications.notify'],
-            },
+            openpaperwork_core.Dependency(
+                interface=Icon,
+                defaults=['paperwork_gtk.icon'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Notifications,
+                defaults=['paperwork_gtk.notifications.notify'],
+            ),
         ]
 
     def on_update_detected(self, local_version, remote_version):

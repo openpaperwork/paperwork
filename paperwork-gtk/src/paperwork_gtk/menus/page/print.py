@@ -29,12 +29,12 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': PageMenu,
-                'defaults': [
+            openpaperwork_core.Dependency(
+                interface=PageMenu,
+                defaults=[
                     'paperwork_gtk.mainwindow.docview.pageinfo.actions'
                 ],
-            },
+            ),
         ]
 
     def chkdeps(self, out: dict):

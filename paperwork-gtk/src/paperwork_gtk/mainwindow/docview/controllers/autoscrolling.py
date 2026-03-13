@@ -41,10 +41,10 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': AutoscrollingGesture,
-                'defaults': ['openpaperwork_gtk.gesture.autoscrolling'],
-            },
+            openpaperwork_core.Dependency(
+                interface=AutoscrollingGesture,
+                defaults=['openpaperwork_gtk.gesture.autoscrolling'],
+            ),
         ]
 
     def gtk_docview_get_controllers(self, out: dict, docview):

@@ -560,50 +560,50 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': DocLabels,
-                'defaults': ['paperwork_backend.model.labels'],
-            },
-            {
-                "interface": DocLabelColors,
-                "defaults": ["paperwork_backend.model.labels"],
-            },
-            {
-                'interface': DocStorage,
-                'defaults': ['paperwork_backend.model.workdir'],
-            },
-            {
-                "interface": Fs,
-                "defaults": ["openpaperwork_gtk.fs.gio"],
-            },
-            {
-                'interface': GtkColors,
-                'defaults': ['openpaperwork_gtk.colors'],
-            },
-            {
-                'interface': GtkYesNoDialog,
-                'defaults': ['openpaperwork_gtk.dialogs.yes_no'],
-            },
-            {
-                "interface": GtkSingleEntryDialog,
-                'defaults': ['openpaperwork_gtk.dialogs.single_entry'],
-            },
-            {
-                'interface': GtkResources,
-                'defaults': ['openpaperwork_gtk.resources'],
-            },
-            {
-                "interface": Mainloop,
-                "defaults": ["openpaperwork_gtk.mainloop.glib"],
-            },
-            {
-                'interface': I18n,
-                'defaults': ['openpaperwork_core.i18n.python'],
-            },
-            {
-                'interface': Screenshot,
-                'defaults': ['openpaperwork_gtk.screenshots'],
-            },
+            openpaperwork_core.Dependency(
+                interface=DocLabels,
+                defaults=['paperwork_backend.model.labels'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocLabelColors,
+                defaults=["paperwork_backend.model.labels"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocStorage,
+                defaults=['paperwork_backend.model.workdir'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=["openpaperwork_gtk.fs.gio"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkColors,
+                defaults=['openpaperwork_gtk.colors'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkYesNoDialog,
+                defaults=['openpaperwork_gtk.dialogs.yes_no'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkSingleEntryDialog,
+                defaults=['openpaperwork_gtk.dialogs.single_entry'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkResources,
+                defaults=['openpaperwork_gtk.resources'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=["openpaperwork_gtk.mainloop.glib"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=I18n,
+                defaults=['openpaperwork_core.i18n.python'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Screenshot,
+                defaults=['openpaperwork_gtk.screenshots'],
+            ),
         ]
 
     def __init__(self, core):

@@ -10,14 +10,14 @@ class Plugin(openpaperwork_core.PluginBase, GuiListener):
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': AppAction,
-                'defaults': ['paperwork_gtk.actions.app.find'],
-            },
-            {
-                'interface': AppShortcutCollector,
-                'defaults': ['paperwork_gtk.mainwindow.window'],
-            },
+            openpaperwork_core.Dependency(
+                interface=AppAction,
+                defaults=['paperwork_gtk.actions.app.find'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=AppShortcutCollector,
+                defaults=['paperwork_gtk.mainwindow.window'],
+            ),
         ]
 
     def on_gui_initialized(self):

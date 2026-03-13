@@ -30,27 +30,27 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': Config,
-                'defaults': ['openpaperwork_core.config'],
-            },
-            {
-                "interface": Docs,
-                "defaults": ["paperwork_backend.model"],
-                "optional": True,
-            },
-            {
-                "interface": DocType,
-                "defaults": [
+            openpaperwork_core.Dependency(
+                interface=Config,
+                defaults=['openpaperwork_core.config'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Docs,
+                defaults=["paperwork_backend.model"],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocType,
+                defaults=[
                     "paperwork_backend.model.pdf",
                     "paperwork_backend.model.img",
                 ],
-                "optional": True,  # debatable, but required to break dependency cycle
-            },
-            {
-                'interface': Fs,
-                'defaults': ['openpaperwork_gtk.fs.gio'],
-            },
+                optional=True,  # debatable, but required to break dependency cycle
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=['openpaperwork_gtk.fs.gio'],
+            ),
         ]
 
     def __init__(self, core):

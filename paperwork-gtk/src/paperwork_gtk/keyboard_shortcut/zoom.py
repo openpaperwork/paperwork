@@ -62,11 +62,11 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": MemleakDetector,
-                "defaults": [],
-                "optional": True,
-            },
+            openpaperwork_core.Dependency(
+                interface=MemleakDetector,
+                defaults=[],
+                optional=True,
+            ),
         ]
 
     def __init__(self, core):

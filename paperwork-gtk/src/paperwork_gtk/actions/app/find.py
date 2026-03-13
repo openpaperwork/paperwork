@@ -27,14 +27,14 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': AppActionCollector,
-                'defaults': ['paperwork_gtk.mainwindow.window'],
-            },
-            {
-                'interface': SearchField,
-                'defaults': ['paperwork_gtk.mainwindow.search.field'],
-            },
+            openpaperwork_core.Dependency(
+                interface=AppActionCollector,
+                defaults=['paperwork_gtk.mainwindow.window'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=SearchField,
+                defaults=['paperwork_gtk.mainwindow.search.field'],
+            ),
         ]
 
     def __init__(self, core):

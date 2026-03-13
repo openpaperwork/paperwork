@@ -140,30 +140,30 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return BaseFileImporter.get_deps() + openpaperwork_core.promise.get_deps() + [
-            {
-                'interface': DocStorage,
-                'defaults': ['paperwork_backend.model.workdir'],
-            },
-            {
-                "interface": Docs,
-                "defaults": ["paperwork_backend.model"],
-            },
-            {
-                'interface': Fs,
-                'defaults': ['openpaperwork_gtk.fs.gio'],
-            },
-            {
-                'interface': Mainloop,
-                'defaults': ['openpaperwork_gtk.mainloop.glib'],
-            },
-            {
-                'interface': PageImg,
-                'defaults': ['paperwork_backend.model.img'],
-            },
-            {
-                'interface': Pillow,
-                'defaults': ['openpaperwork_core.pillow.img'],
-            },
+            openpaperwork_core.Dependency(
+                interface=DocStorage,
+                defaults=['paperwork_backend.model.workdir'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Docs,
+                defaults=["paperwork_backend.model"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=['openpaperwork_gtk.fs.gio'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=['openpaperwork_gtk.mainloop.glib'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageImg,
+                defaults=['paperwork_backend.model.img'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Pillow,
+                defaults=['openpaperwork_core.pillow.img'],
+            ),
         ]
 
     def get_import_mime_types(self, out: set):

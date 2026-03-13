@@ -125,46 +125,46 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": DocStorage,
-                "defaults": ["paperwork_backend.model.workdir"],
-            },
-            {
-                'interface': DocTracker,
-                'defaults': ['paperwork_backend.sync.doctracker'],
-            },
-            {
-                "interface": Mainloop,
-                "defaults": ["openpaperwork_gtk.mainloop.glib"],
-            },
-            {
-                "interface": PageImg,
-                "defaults": [
+            openpaperwork_core.Dependency(
+                interface=DocStorage,
+                defaults=["paperwork_backend.model.workdir"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocTracker,
+                defaults=['paperwork_backend.sync.doctracker'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=["openpaperwork_gtk.mainloop.glib"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageImg,
+                defaults=[
                     "paperwork_backend.model.img",
                     "paperwork_backend.model.pdf",
                 ],
-            },
-            {
-                "interface": PageModificationListener,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                'interface': PageTracker,
-                'defaults': ['paperwork_backend.sync.pagetracker'],
-            },
-            {
-                'interface': Pillow,
-                'defaults': [
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageModificationListener,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageTracker,
+                defaults=['paperwork_backend.sync.pagetracker'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Pillow,
+                defaults=[
                     'openpaperwork_core.pillow.img',
                     'paperwork_backend.pillow.pdf',
                 ]
-            },
-            {
-                "interface": ProgressListener,
-                "defaults": [],
-                "optional": True,
-            },
+            ),
+            openpaperwork_core.Dependency(
+                interface=ProgressListener,
+                defaults=[],
+                optional=True,
+            ),
         ]
 
     def __init__(self, core):

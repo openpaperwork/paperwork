@@ -38,14 +38,14 @@ class Plugin(openpaperwork_core.PluginBase, GtkWindowListener, GtkSettingsScanne
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': Flatpak,
-                'defaults': ['openpaperwork_core.flatpak'],
-            },
-            {
-                'interface': GtkResources,
-                'defaults': ['openpaperwork_gtk.resources'],
-            },
+            openpaperwork_core.Dependency(
+                interface=Flatpak,
+                defaults=['openpaperwork_core.flatpak'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkResources,
+                defaults=['openpaperwork_gtk.resources'],
+            ),
         ]
 
     def __init__(self, core):

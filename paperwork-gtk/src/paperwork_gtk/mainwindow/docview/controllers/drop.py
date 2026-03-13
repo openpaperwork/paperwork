@@ -140,10 +140,10 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': DragAndDrop,
-                'defaults': ['paperwork_gtk.gesture.drag_and_drop'],
-            },
+            openpaperwork_core.Dependency(
+                interface=DragAndDrop,
+                defaults=['paperwork_gtk.gesture.drag_and_drop'],
+            ),
         ]
 
     def on_gtk_docview_init(self, docview):

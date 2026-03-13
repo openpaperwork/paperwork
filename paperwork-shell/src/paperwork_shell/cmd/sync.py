@@ -33,14 +33,14 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": Mainloop,
-                "defaults": ["openpaperwork_core.mainloop.asyncio"],
-            },
-            {
-                'interface': DocTransactionManager,
-                'defaults': ['paperwork_backend.sync'],
-            },
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=["openpaperwork_core.mainloop.asyncio"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocTransactionManager,
+                defaults=['paperwork_backend.sync'],
+            ),
         ]
 
     def __init__(self, core):

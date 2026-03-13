@@ -45,49 +45,49 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                "interface": ActivityListener,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                'interface': Config,
-                'defaults': ['openpaperwork_core.config'],
-            },
-            {
-                "interface": DocViewer,
-                "defaults": ["paperwork_gtk.mainwindow.docview"],
-            },
-            {
-                'interface': GtkResources,
-                'defaults': ['openpaperwork_gtk.resources'],
-            },
-            {
-                "interface": PageAddButtons,
-                "defaults": ["paperwork_gtk.mainwindow.docview.pageadd.buttons"],
-            },
-            {
-                'interface': PageAddButtonsSourcesPopover,
-                'defaults': [
+            openpaperwork_core.Dependency(
+                interface=ActivityListener,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=Config,
+                defaults=['openpaperwork_core.config'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocViewer,
+                defaults=["paperwork_gtk.mainwindow.docview"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkResources,
+                defaults=['openpaperwork_gtk.resources'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageAddButtons,
+                defaults=["paperwork_gtk.mainwindow.docview.pageadd.buttons"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageAddButtonsSourcesPopover,
+                defaults=[
                     'paperwork_gtk.mainwindow.docview.pageadd.source_popover'
                 ],
-            },
-            {
-                'interface': I18nScanner,
-                'defaults': ['paperwork_backend.i18n.scanner'],
-            },
-            {
-                "interface": Mainloop,
-                "defaults": ["openpaperwork_gtk.mainloop.glib"],
-            },
-            {
-                'interface': Scan,
-                'defaults': ['paperwork_backend.docscan.scan2doc'],
-            },
-            {
-                'interface': Scan2Doc,
-                'defaults': ['paperwork_backend.docscan.libinsane'],
-            },
+            ),
+            openpaperwork_core.Dependency(
+                interface=I18nScanner,
+                defaults=['paperwork_backend.i18n.scanner'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=["openpaperwork_gtk.mainloop.glib"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Scan,
+                defaults=['paperwork_backend.docscan.scan2doc'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Scan2Doc,
+                defaults=['paperwork_backend.docscan.libinsane'],
+            ),
         ]
 
     def __init__(self, core):

@@ -34,14 +34,14 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': HelpDocs,
-                'defaults': ['paperwork_gtk.model.help'],
-            },
-            {
-                'interface': AppMenu,
-                'defaults': ['paperwork_gtk.mainwindow.doclist'],
-            },
+            openpaperwork_core.Dependency(
+                interface=HelpDocs,
+                defaults=['paperwork_gtk.model.help'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=AppMenu,
+                defaults=['paperwork_gtk.mainwindow.doclist'],
+            ),
         ]
 
     def __init__(self, core):

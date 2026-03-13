@@ -58,26 +58,26 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": Config,
-                "defaults": ["openpaperwork_core.config"],
-            },
-            {
-                "interface": CertificateStore,
-                "defaults": ["openpaperwork_core.crypto.certificates.store"],
-            },
-            {
-                "interface": Fs,
-                "defaults": ["openpaperwork_gtk.fs.gio"],
-            },
-            {
-                "interface": HttpsBackend,
-                "defaults": ["paperwork_backend.http"],
-            },
-            {
-                "interface": Networking,
-                "defaults": ["openpaperwork_core.networking"],
-            },
+            openpaperwork_core.Dependency(
+                interface=Config,
+                defaults=["openpaperwork_core.config"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=CertificateStore,
+                defaults=["openpaperwork_core.crypto.certificates.store"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=["openpaperwork_gtk.fs.gio"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=HttpsBackend,
+                defaults=["paperwork_backend.http"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Networking,
+                defaults=["openpaperwork_core.networking"],
+            ),
         ]
 
     def __init__(self, core):

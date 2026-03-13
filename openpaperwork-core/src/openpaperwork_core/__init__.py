@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from types import ModuleType
 from typing import Callable
-from typing import Generator
 from typing import Dict
+from typing import Generator
 from typing import List
 from typing import Set
-from typing import Type
 from typing import Tuple
+from typing import Type
+import dataclasses
 
 import abc
 import collections
@@ -102,6 +103,13 @@ class DependencyException(Exception):
     pass
 
 
+@dataclasses.dataclass
+class Dependency:
+    interface: Type[abc.ABC]
+    defaults: List[str]
+    optional: bool = False
+
+
 class PluginBase:
     """
     Indicates all the methods that must be implemented by any plugin
@@ -145,7 +153,7 @@ class PluginBase:
         ]
 
     @classmethod
-    def get_deps(cls):
+    def get_deps(cls) -> List[Dependency]:
         """
         Return the dependencies required by this plugin.
 
@@ -213,15 +221,15 @@ class _ModuleRepository:
         modules = self.modules.values()
         for module in modules:
             for dep in module.module.Plugin.get_deps():
-                if dep.get("optional", False):
+                if dep.optional:
                     continue
-                interface = dep["interface"]
+                interface = dep.interface
                 if len(self.interface_to_modules[interface]) > 0:
                     continue
                 yield (
                     module,
                     interface,
-                    dep["defaults"],
+                    dep.defaults,
                 )
 
 
@@ -245,9 +253,9 @@ class _DependencyTreeNode:
 
     def load_deps(self, dep_tree: _DependencyTree):
         for dep in self.module.module.Plugin.get_deps():
-            if dep.get("optional", False):
+            if dep.optional:
                 continue
-            interface = dep["interface"]
+            interface = dep.interface
             nodes = dep_tree.get_nodes_by_interface(interface)
             for node in nodes:
                 self.depends_on.add(node)
@@ -437,7 +445,7 @@ class _CoreProxy:
     def _reload(self, init=False):
         self._callbacks = {}
         for dep in self._module.module.Plugin.get_deps():
-            self.__add_interface_callbacks(dep["interface"], optional=dep.get("optional", False))
+            self.__add_interface_callbacks(dep.interface, optional=dep.optional)
         if not init:  # the plugin has been initialized and can therefore self-reference
             for interface in self._module.module.Plugin.get_interfaces():
                 self.__add_interface_callbacks(interface)

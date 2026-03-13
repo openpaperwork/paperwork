@@ -82,10 +82,10 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": PageViewerListener,
-                "defaults": [],
-            },
+            openpaperwork_core.Dependency(
+                interface=PageViewerListener,
+                defaults=[],
+            ),
         ]
 
     def gtk_docview_get_controllers(self, out: dict, docview):

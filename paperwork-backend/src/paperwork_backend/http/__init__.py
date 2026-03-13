@@ -219,38 +219,38 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": CertificateStore,
-                "defaults": ["openpaperwork_core.crypto.certificates.store"],
-            },
-            {
-                "interface": Config,
-                "defaults": ["openpaperwork_core.config"],
-            },
-            {
-                "interface": HttpsServer,
-                "defaults": ["openpaperwork_core.http.server"],
-            },
-            {
-                "interface": HttpBackendExtension,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                "interface": HttpsBackendSsl,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                "interface": NetworkingServiceAnnounce,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                "interface": ProgressListener,
-                "defaults": [],
-                "optional": True,
-            },
+            openpaperwork_core.Dependency(
+                interface=CertificateStore,
+                defaults=["openpaperwork_core.crypto.certificates.store"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Config,
+                defaults=["openpaperwork_core.config"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=HttpsServer,
+                defaults=["openpaperwork_core.http.server"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=HttpBackendExtension,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=HttpsBackendSsl,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=NetworkingServiceAnnounce,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=ProgressListener,
+                defaults=[],
+                optional=True,
+            ),
         ]
 
     def __init__(self, core):

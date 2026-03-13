@@ -24,30 +24,30 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': Config,
-                'defaults': ['openpaperwork_core.config'],
-            },
-            {
-                "interface": GtkSettingsOcr,
-                "defaults": ["paperwork_gtk.settings.ocr.selector_popover"],
-            },
-            {
-                'interface': I18nLang,
-                'defaults': ['paperwork_backend.i18n.pycountry'],
-            },
-            {
-                'interface': OcrSettings,
-                'defaults': ['paperwork_backend.pyocr'],
-            },
-            {
-                'interface': GtkResources,
-                'defaults': ['openpaperwork_gtk.resources'],
-            },
-            {
-                'interface': SettingsDialog,
-                'defaults': ['paperwork_gtk.settings'],
-            },
+            openpaperwork_core.Dependency(
+                interface=Config,
+                defaults=['openpaperwork_core.config'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkSettingsOcr,
+                defaults=["paperwork_gtk.settings.ocr.selector_popover"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=I18nLang,
+                defaults=['paperwork_backend.i18n.pycountry'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=OcrSettings,
+                defaults=['paperwork_backend.pyocr'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkResources,
+                defaults=['openpaperwork_gtk.resources'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=SettingsDialog,
+                defaults=['paperwork_gtk.settings'],
+            ),
         ]
 
     def complete_settings(self, global_widget_tree):

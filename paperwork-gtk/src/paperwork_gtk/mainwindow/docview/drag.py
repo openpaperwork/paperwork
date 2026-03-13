@@ -41,13 +41,13 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': PageImg,
-                'defaults': [
+            openpaperwork_core.Dependency(
+                interface=PageImg,
+                defaults=[
                     'paperwork_backend.model.img',
                     'paperwork_backend.model.pdf',
                 ],
-            },
+            ),
         ]
 
     def __init__(self, core):

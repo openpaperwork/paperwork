@@ -40,18 +40,18 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                "interface": Mainloop,
-                "defaults": ["openpaperwork_gtk.mainloop.glib"],
-            },
-            {
-                "interface": Config,
-                "defaults": ['openpaperwork_core.config'],
-            },
-            {
-                "interface": Scan,
-                "defaults": ['paperwork_backend.docscan.libinsane'],
-            },
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=["openpaperwork_gtk.mainloop.glib"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Config,
+                defaults=['openpaperwork_core.config'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Scan,
+                defaults=['paperwork_backend.docscan.libinsane'],
+            ),
         ]
 
     def __init__(self, core):

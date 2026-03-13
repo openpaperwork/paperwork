@@ -69,18 +69,18 @@ class Plugin(
             # may be fine.
             #
             # (see paperwork-json)
-            # {
-            #     'interface': DocRenderer,
-            #     'defaults': [],
-            # },
-            {
-                'interface': ImgRenderer,
-                'defaults': ['paperwork_shell.display.docrendering.img'],
-            },
-            {
-                "interface": Pages,
-                "defaults": ["paperwork_backend.model"]
-            },
+            # openpaperwork_core.Dependency(
+            #     interface=DocRenderer,
+            #     defaults=[],
+            # ),
+            openpaperwork_core.Dependency(
+                interface=ImgRenderer,
+                defaults=['paperwork_shell.display.docrendering.img'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Pages,
+                defaults=["paperwork_backend.model"]
+            ),
         ]
 
     def __init__(self, core):

@@ -36,30 +36,30 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": DocLabelColors,
-                "defaults": ["paperwork_backend.model.labels"],
-            },
-            {
-                "interface": DocLabels,
-                "defaults": ["paperwork_backend.model.labels"],
-            },
-            {
-                "interface": DocStorage,
-                "defaults": ["paperwork_backend.model.workdir"],
-            },
-            {
-                "interface": LabelRenderer,
-                "defaults": ["paperwork_shell.display.docrendering.labels"],
-            },
-            {
-                'interface': Mainloop,
-                'defaults': ['openpaperwork_core.mainloop.asyncio'],
-            },
-            {
-                'interface': DocTransactionManager,
-                'defaults': ['paperwork_backend.sync'],
-            },
+            openpaperwork_core.Dependency(
+                interface=DocLabelColors,
+                defaults=["paperwork_backend.model.labels"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocLabels,
+                defaults=["paperwork_backend.model.labels"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocStorage,
+                defaults=["paperwork_backend.model.workdir"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=LabelRenderer,
+                defaults=["paperwork_shell.display.docrendering.labels"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=['openpaperwork_core.mainloop.asyncio'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocTransactionManager,
+                defaults=['paperwork_backend.sync'],
+            ),
         ]
 
     def cmd_complete_argparse(self, parser):

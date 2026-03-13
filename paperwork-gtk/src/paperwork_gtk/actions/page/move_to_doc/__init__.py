@@ -46,47 +46,47 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                'interface': AppActionCollector,
-                'defaults': ['paperwork_gtk.mainwindow.window'],
-            },
-            {
-                'interface': DocList,
-                'defaults': ['paperwork_gtk.mainwindow.doclist'],
-            },
-            {
-                "interface": Docs,
-                "defaults": ["paperwork_backend.model"],
-            },
-            {
-                'interface': DocTransactionManager,
-                'defaults': ['paperwork_backend.sync'],
-            },
-            {
-                'interface': GtkResources,
-                'defaults': ['openpaperwork_gtk.resources'],
-            },
-            {
-                "interface": Mainloop,
-                "defaults": ["openpaperwork_gtk.mainloop.glib"],
-            },
-            {
-                'interface': MainWindow,
-                'defaults': ['paperwork_gtk.mainwindow.window'],
-            },
-            {
-                'interface': PageImg,
-                'defaults': [
+            openpaperwork_core.Dependency(
+                interface=AppActionCollector,
+                defaults=['paperwork_gtk.mainwindow.window'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocList,
+                defaults=['paperwork_gtk.mainwindow.doclist'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Docs,
+                defaults=["paperwork_backend.model"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocTransactionManager,
+                defaults=['paperwork_backend.sync'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkResources,
+                defaults=['openpaperwork_gtk.resources'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=["openpaperwork_gtk.mainloop.glib"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=MainWindow,
+                defaults=['paperwork_gtk.mainwindow.window'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageImg,
+                defaults=[
                     'paperwork_backend.model.img',
                     'paperwork_backend.model.img_overlay',
                     'paperwork_backend.model.hocr',
                     'paperwork_backend.model.pdf',
                 ],
-            },
-            {
-                'interface': SearchField,
-                'defaults': ['paperwork_gtk.mainwindow.search.field'],
-            },
+            ),
+            openpaperwork_core.Dependency(
+                interface=SearchField,
+                defaults=['paperwork_gtk.mainwindow.search.field'],
+            ),
         ]
 
     def __init__(self, core):

@@ -41,27 +41,27 @@ class Plugin(
             # if there are no doc_renderer loaded, nothing it displayed, which
             # may be fine.
             # (see paperwork-json)
-            {
-                "interface": DocRendererFactory,
-                "defaults": [],
-            },
-            {
-                "interface": DocStorage,
-                "defaults": ['paperwork_backend.model.workdir'],
-            },
-            {
-                'interface': I18n,
-                'defaults': ['openpaperwork_core.i18n.python'],
-            },
-            {
-                "interface": Index,
-                "defaults": ['paperwork_backend.index.shell'],
-            },
-            {
-                "interface": Print,
-                "defaults": [],
-                "optional": True,
-            },
+            openpaperwork_core.Dependency(
+                interface=DocRendererFactory,
+                defaults=[],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocStorage,
+                defaults=['paperwork_backend.model.workdir'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=I18n,
+                defaults=['openpaperwork_core.i18n.python'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Index,
+                defaults=['paperwork_backend.index.shell'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Print,
+                defaults=[],
+                optional=True,
+            ),
         ]
 
     def cmd_complete_argparse(self, parser):

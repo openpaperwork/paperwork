@@ -32,10 +32,10 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': Config,
-                'defaults': ['openpaperwork_core.config'],
-            },
+            openpaperwork_core.Dependency(
+                interface=Config,
+                defaults=['openpaperwork_core.config'],
+            ),
         ]
 
     def cmd_complete_argparse(self, parser):
@@ -131,12 +131,12 @@ class Plugin(
             deps = module.Plugin.get_deps()
             for dep in deps:
                 try:
-                    actives = self.core.get_by_interface(dep['interface'])
+                    actives = self.core.get_by_interface(dep.interface)
                     if len(actives) > 0:
                         continue
                 except KeyError:
                     pass
-                for default in dep['defaults']:
+                for default in dep.defaults:
                     if default in added:
                         continue
                     console.print(
@@ -147,7 +147,7 @@ class Plugin(
                         ).format(
                             plugin_name=default,
                             other_plugin_name=plugin_name,
-                            interface=dep['interface']
+                            interface=dep.interface
                         )
                     )
                     r = self._cmd_add_plugin(
@@ -264,14 +264,14 @@ class Plugin(
 
         deps = plugin.get_deps()
 
-        requirements = {d['interface'] for d in deps}
+        requirements = {d.interface for d in deps}
         requirements.update(parents_requirements)
 
         plugin_names = set()
         for (idx, dep) in enumerate(deps):
-            plugins = self.core.get_by_interface(dep['interface'])
+            plugins = self.core.get_by_interface(dep.interface)
             plugin_names.update({plugin.__name__ for plugin in plugins})
-            plugin_names.update(dep['defaults'])
+            plugin_names.update(dep.defaults)
 
         plugin_names = list(plugin_names)
         plugin_names.sort()
@@ -293,8 +293,8 @@ class Plugin(
             console.print("  + " + interf)
         console.print("* " + _("Depends on:"))
         for dep in plugin.get_deps():
-            console.print("  + " + dep['interface'])
-            for default in dep['defaults']:
+            console.print("  + " + dep.interface)
+            for default in dep.defaults:
                 console.print("    - " + (_("suggested: %s") % default))
 
         console.print("")

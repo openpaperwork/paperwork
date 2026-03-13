@@ -42,31 +42,31 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': AppActionCollector,
-                'defaults': ['paperwork_gtk.mainwindow.window'],
-            },
-            {
-                'interface': DocStorage,
-                'defaults': ['paperwork_backend.model.workdir'],
-            },
-            {
-                'interface': DocTransactionManager,
-                'defaults': ['paperwork_backend.sync'],
-            },
-            {
-                'interface': GtkYesNoDialog,
-                'defaults': ['openpaperwork_gtk.dialogs.yes_no'],
-            },
-            {
-                "interface": PageManagement,
-                "defaults": ["paperwork_backend.interfaces.pages"],
-            },
-            {
-                "interface": SearchField,
-                "defaults": [],
-                "optional": True,
-            },
+            openpaperwork_core.Dependency(
+                interface=AppActionCollector,
+                defaults=['paperwork_gtk.mainwindow.window'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocStorage,
+                defaults=['paperwork_backend.model.workdir'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocTransactionManager,
+                defaults=['paperwork_backend.sync'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkYesNoDialog,
+                defaults=['openpaperwork_gtk.dialogs.yes_no'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageManagement,
+                defaults=["paperwork_backend.interfaces.pages"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=SearchField,
+                defaults=[],
+                optional=True,
+            ),
         ]
 
     def __init__(self, core):

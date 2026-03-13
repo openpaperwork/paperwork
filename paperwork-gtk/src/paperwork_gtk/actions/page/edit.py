@@ -31,14 +31,14 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': AppActionCollector,
-                'defaults': ['paperwork_gtk.mainwindow.window'],
-            },
-            {
-                'interface': PageEditor,
-                'defaults': ['paperwork_gtk.mainwindow.pageeditor'],
-            },
+            openpaperwork_core.Dependency(
+                interface=AppActionCollector,
+                defaults=['paperwork_gtk.mainwindow.window'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageEditor,
+                defaults=['paperwork_gtk.mainwindow.pageeditor'],
+            ),
         ]
 
     def __init__(self, core):

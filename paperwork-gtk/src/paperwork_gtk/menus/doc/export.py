@@ -18,10 +18,10 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': DocActions,
-                'defaults': ['paperwork_gtk.mainwindow.doclist'],
-            },
+            openpaperwork_core.Dependency(
+                interface=DocActions,
+                defaults=['paperwork_gtk.mainwindow.doclist'],
+            ),
         ]
 
     def on_doclist_initialized(self):

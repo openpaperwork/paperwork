@@ -38,36 +38,36 @@ class Plugin(
         # may be fine.
         # (see paperwork-json)
         return [
-            {
-                "interface": Docs,
-                "defaults": ["paperwork_backend.model"],
-            },
-            {
-                "interface": DocRendererFactory,
-                "defaults": [
+            openpaperwork_core.Dependency(
+                interface=Docs,
+                defaults=["paperwork_backend.model"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocRendererFactory,
+                defaults=[
                     "paperwork_shell.display.doc_renderer",
                     "paperwork_shell.display.docrendering.extra_text",
                     "paperwork_shell.display.docrendering.img",
                     "paperwork_shell.display.docrendering.labels",
                     "paperwork_shell.display.docrendering.text",
                 ],
-            },
-            {
-                'interface': DocStorage,
-                'defaults': ['paperwork_backend.model.workdir'],
-            },
-            {
-                'interface': I18n,
-                'defaults': ['openpaperwork_core.i18n.python'],
-            },
-            {
-                "interface": Print,
-                "defaults": [
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocStorage,
+                defaults=['paperwork_backend.model.workdir'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=I18n,
+                defaults=['openpaperwork_core.i18n.python'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Print,
+                defaults=[
                     "openpaperwork_core.display.print",
                     "paperwork_shell.display.rich",
                 ],
-                "optional": True,
-            },
+                optional=True,
+            ),
         ]
 
     def cmd_complete_argparse(self, parser):

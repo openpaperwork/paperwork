@@ -22,25 +22,25 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': Config,
-                'defaults': ['openpaperwork_core.config'],
-            },
-            {
-                'interface': GtkResources,
-                'defaults': ['openpaperwork_gtk.resources'],
-            },
-            {
-                'interface': PageAddButtons,
-                'defaults': [
+            openpaperwork_core.Dependency(
+                interface=Config,
+                defaults=['openpaperwork_core.config'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkResources,
+                defaults=['openpaperwork_gtk.resources'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageAddButtons,
+                defaults=[
                     'paperwork_gtk.mainwindow.docview.pageadd.buttons'
                 ],
-            },
-            {
-                "interface": PageAddButtonsSources,
-                "defaults": [],
-                "optional": True,
-            },
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageAddButtonsSources,
+                defaults=[],
+                optional=True,
+            ),
         ]
 
     def __init__(self, core):

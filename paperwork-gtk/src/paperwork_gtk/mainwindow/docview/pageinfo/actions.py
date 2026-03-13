@@ -45,43 +45,43 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': DocConverted,
-                'defaults': [],
-            },
-            {
-                'interface': ExternalApps,
-                'defaults': ['openpaperwork_core.external_apps.xdg'],
-            },
-            {
-                "interface": Fs,
-                "defaults": ["openpaperwork_gtk.fs.gio"]
-            },
-            {
-                "interface": Mainloop,
-                "defaults": ["openpaperwork_gtk.mainloop.glib"],
-            },
-            {
-                'interface': PageEditor,
-                'defaults': ['paperwork_gtk.mainwindow.pageeditor'],
-            },
-            {
-                'interface': PageInfo,
-                'defaults': ['paperwork_gtk.mainwindow.docview.pageinfo'],
-            },
-            {
-                "interface": PageMenuListener,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                'interface': GtkResources,
-                'defaults': ['openpaperwork_gtk.resources'],
-            },
-            {
-                'interface': Screenshot,
-                'defaults': ['openpaperwork_gtk.screenshots'],
-            },
+            openpaperwork_core.Dependency(
+                interface=DocConverted,
+                defaults=[],
+            ),
+            openpaperwork_core.Dependency(
+                interface=ExternalApps,
+                defaults=['openpaperwork_core.external_apps.xdg'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=["openpaperwork_gtk.fs.gio"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=["openpaperwork_gtk.mainloop.glib"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageEditor,
+                defaults=['paperwork_gtk.mainwindow.pageeditor'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageInfo,
+                defaults=['paperwork_gtk.mainwindow.docview.pageinfo'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageMenuListener,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkResources,
+                defaults=['openpaperwork_gtk.resources'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Screenshot,
+                defaults=['openpaperwork_gtk.screenshots'],
+            ),
         ]
 
     def __init__(self, core):

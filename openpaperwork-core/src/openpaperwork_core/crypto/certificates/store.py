@@ -19,18 +19,18 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                "interface": CryptoCertificates,
-                "defaults": ["openpaperwork_core.crypto.certificates.selfsigned"],
-            },
-            {
-                "interface": Fs,
-                "defaults": ["openpaperwork_core.fs.python"],
-            },
-            {
-                'interface': Paths,
-                'defaults': ['openpaperwork_core.paths.xdg'],
-            },
+            openpaperwork_core.Dependency(
+                interface=CryptoCertificates,
+                defaults=["openpaperwork_core.crypto.certificates.selfsigned"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=["openpaperwork_core.fs.python"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Paths,
+                defaults=['openpaperwork_core.paths.xdg'],
+            ),
         ]
 
     def _get_paths(self, name):

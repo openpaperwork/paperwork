@@ -70,22 +70,22 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': DataVersioning,
-                'defaults': ['openpaperwork_core.data_versioning'],
-            },
-            {
-                'interface': Fs,
-                'defaults': ['openpaperwork_core.fs.python'],
-            },
-            {
-                'interface': Mainloop,
-                'defaults': ['openpaperwork_core.mainloop.asyncio'],
-            },
-            {
-                'interface': Paths,
-                'defaults': ['openpaperwork_core.paths.xdg'],
-            },
+            openpaperwork_core.Dependency(
+                interface=DataVersioning,
+                defaults=['openpaperwork_core.data_versioning'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=['openpaperwork_core.fs.python'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=['openpaperwork_core.mainloop.asyncio'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Paths,
+                defaults=['openpaperwork_core.paths.xdg'],
+            ),
         ]
 
     def __init__(self, core):

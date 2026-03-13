@@ -64,52 +64,52 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': Config,
-                'defaults': ['openpaperwork_core.config'],
-            },
-            {
-                'interface': Fs,
-                'defaults': ['openpaperwork_gtk.fs.gio']
-            },
-            {
-                "interface": GtkApp,
-                "defaults": ["openpaperwork_gtk.gtk_init"],
-            },
-            {
-                'interface': GtkResources,
-                'defaults': ['openpaperwork_gtk.resources'],
-            },
-            {
-                'interface': GtkInit,
-                'defaults': ['openpaperwork_gtk.gtk_init'],
-            },
-            {
-                "interface": GtkWindowListener,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                'interface': Icon,
-                'defaults': ['paperwork_gtk.icon'],
-            },
-            {
-                'interface': L10nInit,
-                'defaults': ['paperwork_gtk.l10n'],
-            },
-            {
-                "interface": Mainloop,
-                "defaults": ["openpaperwork_gtk.mainloop.glib"],
-            },
-            {
-                "interface": MainWindowListener,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                'interface': Screenshot,
-                'defaults': ['openpaperwork_gtk.screenshots'],
-            },
+            openpaperwork_core.Dependency(
+                interface=Config,
+                defaults=['openpaperwork_core.config'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=['openpaperwork_gtk.fs.gio'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkApp,
+                defaults=["openpaperwork_gtk.gtk_init"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkResources,
+                defaults=['openpaperwork_gtk.resources'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkInit,
+                defaults=['openpaperwork_gtk.gtk_init'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkWindowListener,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=Icon,
+                defaults=['paperwork_gtk.icon'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=L10nInit,
+                defaults=['paperwork_gtk.l10n'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=["openpaperwork_gtk.mainloop.glib"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=MainWindowListener,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=Screenshot,
+                defaults=['openpaperwork_gtk.screenshots'],
+            ),
         ]
 
     def __init__(self, core):

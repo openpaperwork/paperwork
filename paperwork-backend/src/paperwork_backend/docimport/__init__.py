@@ -11,19 +11,19 @@ class BaseFileImporter(AbstractFileImporter):
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                "interface": DocTransactionFactory,
-                "defaults": [
+            openpaperwork_core.Dependency(
+                interface=DocTransactionFactory,
+                defaults=[
                     "paperwork_backend.index.whoosh",
                     "paperwork_backend.doctracker",
                 ],
-                "optional": True,
-            },
-            {
-                "interface": ImportListener,
-                "defaults": [],
-                "optional": True,
-            },
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=ImportListener,
+                defaults=[],
+                optional=True,
+            ),
         ]
 
     def __init__(self, core, file_import, single_file_importer_factory):

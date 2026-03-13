@@ -38,43 +38,43 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                'interface': App,
-                'defaults': ['paperwork_backend.app'],
-            },
-            {
-                "interface": BugReportAttachmentUpdate,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                'interface': Config,
-                'defaults': ['openpaperwork_core.config'],
-            },
-            {
-                'interface': Fs,
-                'defaults': [
+            openpaperwork_core.Dependency(
+                interface=App,
+                defaults=['paperwork_backend.app'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=BugReportAttachmentUpdate,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=Config,
+                defaults=['openpaperwork_core.config'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=[
                     'openpaperwork_core.fs.memory',
                     'openpaperwork_core.fs.python',
                 ],
-            },
-            {
-                'interface': HttpJson,
-                'defaults': ['openpaperwork_core.http.client'],
-            },
-            {
-                'interface': Mainloop,
-                'defaults': ['openpaperwork_core.mainloop.asyncio'],
-            },
-            {
-                "interface": Stats,
-                "defaults": [],
-            },
-            {
-                "interface": StatsListener,
-                "defaults": [],
-                "optional": True,
-            },
+            ),
+            openpaperwork_core.Dependency(
+                interface=HttpJson,
+                defaults=['openpaperwork_core.http.client'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=['openpaperwork_core.mainloop.asyncio'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Stats,
+                defaults=[],
+            ),
+            openpaperwork_core.Dependency(
+                interface=StatsListener,
+                defaults=[],
+                optional=True,
+            ),
         ]
 
     def __init__(self, core):

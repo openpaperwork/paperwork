@@ -48,39 +48,37 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": Config,
-                "defaults": ["openpaperwork_core.config"],
-            },
-            {
-                "interface": DocImport,
-                'defaults': ['paperwork_gtk.docimport'],
-            },
-            {
-                'interface': ImporterFactory,
-                'defaults': [
+            openpaperwork_core.Dependency(
+                interface=Config,
+                defaults=["openpaperwork_core.config"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocImport,
+                defaults=['paperwork_gtk.docimport'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=ImporterFactory,
+                defaults=[
                     'paperwork_backend.docimport.img',
                     'paperwork_backend.docimport.pdf',
                 ],
-            },
-            {
-                'interface': GtkResources,
-                'defaults': ['openpaperwork_gtk.resources'],
-            },
-            {
-                "interface": Mainloop,
-                "defaults": ["openpaperwork_gtk.mainloop.glib"],
-            },
-            {
-                "interface": Notifications,
-                "defaults": ["paperwork_gtk.notifications.dialog"],
-            },
-            {
-                'interface': PageAddButtons,
-                'defaults': [
-                    'paperwork_gtk.mainwindow.docview.pageadd.source_popover'
-                ],
-            },
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkResources,
+                defaults=['openpaperwork_gtk.resources'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=["openpaperwork_gtk.mainloop.glib"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Notifications,
+                defaults=["paperwork_gtk.notifications.dialog"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageAddButtons,
+                defaults=['paperwork_gtk.mainwindow.docview.pageadd.source_popover'],
+            ),
         ]
 
     def __init__(self, core):

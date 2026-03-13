@@ -32,14 +32,14 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": App,
-                "defaults": [],
-            },
-            {
-                "interface": Networking,
-                "defaults": ["openpaperwork_core.networking"],
-            },
+            openpaperwork_core.Dependency(
+                interface=App,
+                defaults=[],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Networking,
+                defaults=["openpaperwork_core.networking"],
+            ),
         ]
 
     def crypto_generate_certificate(

@@ -24,19 +24,19 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": BugReportAttachmentFileUrl,
-                "defaults": ["openpaperwork_gtk.bug_report"],
-                "optional": True,
-            },
-            {
-                'interface': Censor,
-                'defaults': ['openpaperwork_core.censor'],
-            },
-            {
-                "interface": Fs,
-                "defaults": ["openpaperwork_core.fs.python"],
-            },
+            openpaperwork_core.Dependency(
+                interface=BugReportAttachmentFileUrl,
+                defaults=["openpaperwork_gtk.bug_report"],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=Censor,
+                defaults=['openpaperwork_core.censor'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=["openpaperwork_core.fs.python"],
+            ),
         ]
 
     def _censor_attachment(self, attachment_id, args):

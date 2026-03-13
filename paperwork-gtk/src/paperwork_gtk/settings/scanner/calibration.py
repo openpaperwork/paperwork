@@ -50,62 +50,62 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                "interface": ActivityListener,
-                "defaults": [],
-            },
-            {
-                'interface': Config,
-                'defaults': ['openpaperwork_core.config'],
-            },
-            {
-                'interface': CalibrationDrawerFactory,
-                'defaults': ['paperwork_gtk.drawer.calibration'],
-            },
-            {
-                "interface": Fs,
-                "defaults": ["openpaperwork_gtk.fs.gio"],
-            },
-            {
-                "interface": I18nScanner,
-                "defaults": ["paperwork_backend.i18n.scanner"],
-            },
-            {
-                'interface': PillowDrawer,
-                'defaults': ['openpaperwork_gtk.drawer.pillow'],
-            },
-            {
-                'interface': ScanDrawerFactory,
-                'defaults': ['paperwork_gtk.drawer.calibration'],
-            },
+            openpaperwork_core.Dependency(
+                interface=ActivityListener,
+                defaults=[],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Config,
+                defaults=['openpaperwork_core.config'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=CalibrationDrawerFactory,
+                defaults=['paperwork_gtk.drawer.calibration'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=["openpaperwork_gtk.fs.gio"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=I18nScanner,
+                defaults=["paperwork_backend.i18n.scanner"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=PillowDrawer,
+                defaults=['openpaperwork_gtk.drawer.pillow'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=ScanDrawerFactory,
+                defaults=['paperwork_gtk.drawer.calibration'],
+            ),
             # Optional:
-            # {
-            #     'interface': 'gtk_zoomable',
-            #     'defaults': [
+            # openpaperwork_core.Dependency(
+            #     interface='gtk_zoomable',
+            #     defaults=[
             #         'paperwork_gtk.gesture.zoom',
             #         'paperwork_gtk.keyboard_shortcut.zoom',
             #     ],
-            # },
-            {
-                'interface': GtkResources,
-                'defaults': ['openpaperwork_gtk.resources'],
-            },
-            {
-                'interface': SettingsDialog,
-                'defaults': ['paperwork_gtk.settings'],
-            },
-            {
-                'interface': Scan,
-                'defaults': ['paperwork_backend.docscan.libinsane'],
-            },
-            {
-                'interface': Screenshot,
-                'defaults': ['openpaperwork_gtk.screenshots'],
-            },
-            {
-                "interface": Zoom,
-                "defaults": [],
-            },
+            # ),
+            openpaperwork_core.Dependency(
+                interface=GtkResources,
+                defaults=['openpaperwork_gtk.resources'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=SettingsDialog,
+                defaults=['paperwork_gtk.settings'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Scan,
+                defaults=['paperwork_backend.docscan.libinsane'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Screenshot,
+                defaults=['openpaperwork_gtk.screenshots'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Zoom,
+                defaults=[],
+            ),
         ]
 
     def __init__(self, core):

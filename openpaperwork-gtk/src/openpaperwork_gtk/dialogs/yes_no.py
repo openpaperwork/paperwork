@@ -36,11 +36,11 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                "interface": GtkYesNoDialogListener,
-                "defaults": [],
-                "optional": True,
-            },
+            openpaperwork_core.Dependency(
+                interface=GtkYesNoDialogListener,
+                defaults=[],
+                optional=True,
+            ),
         ]
 
     def __init__(self, core):

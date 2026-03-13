@@ -26,14 +26,14 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': GtkAbout,
-                'defaults': ['paperwork_gtk.about'],
-            },
-            {
-                'interface': AppActionCollector,
-                'defaults': ['paperwork_gtk.mainwindow.window'],
-            },
+            openpaperwork_core.Dependency(
+                interface=GtkAbout,
+                defaults=['paperwork_gtk.about'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=AppActionCollector,
+                defaults=['paperwork_gtk.mainwindow.window'],
+            ),
         ]
 
     def __init__(self, core):

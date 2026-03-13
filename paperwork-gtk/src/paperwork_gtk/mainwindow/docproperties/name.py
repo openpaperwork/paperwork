@@ -24,26 +24,26 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': DocStorage,
-                'defaults': ['paperwork_backend.model.workdir'],
-            },
-            {
-                'interface': GtkCalendarWidget,
-                'defaults': ['openpaperwork_gtk.widgets.calendar'],
-            },
-            {
-                'interface': GtkColors,
-                'defaults': ['openpaperwork_gtk.colors'],
-            },
-            {
-                'interface': GtkResources,
-                'defaults': ['openpaperwork_gtk.resources'],
-            },
-            {
-                'interface': I18n,
-                'defaults': ['openpaperwork_core.i18n.python'],
-            },
+            openpaperwork_core.Dependency(
+                interface=DocStorage,
+                defaults=['paperwork_backend.model.workdir'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkCalendarWidget,
+                defaults=['openpaperwork_gtk.widgets.calendar'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkColors,
+                defaults=['openpaperwork_gtk.colors'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkResources,
+                defaults=['openpaperwork_gtk.resources'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=I18n,
+                defaults=['openpaperwork_core.i18n.python'],
+            ),
         ]
 
     def __init__(self, core):

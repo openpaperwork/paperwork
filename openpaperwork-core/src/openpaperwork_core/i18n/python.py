@@ -6,6 +6,7 @@ import unicodedata
 from openpaperwork_core import (_, PluginBase)
 from openpaperwork_core.interfaces.i18n import I18n
 from openpaperwork_core.interfaces.l10n import L10n
+import openpaperwork_core
 
 
 class Plugin(
@@ -20,10 +21,10 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': L10n,
-                'defaults': ['openpaperwork_core.l10n.python'],
-            },
+            openpaperwork_core.Dependency(
+                interface=L10n,
+                defaults=['openpaperwork_core.l10n.python'],
+            ),
         ]
 
     def __init__(self, core):

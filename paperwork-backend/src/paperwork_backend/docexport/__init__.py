@@ -38,6 +38,7 @@ import logging
 
 from openpaperwork_core.interfaces.mainloop import Mainloop
 import openpaperwork_core
+import openpaperwork_core.promise
 
 from paperwork_backend.interfaces.export import ExportPipes
 
@@ -282,10 +283,10 @@ class AbstractExportPipePlugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                'interface': Mainloop,
-                'defaults': ['openpaperwork_gtk.mainloop.glib'],
-            },
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=['openpaperwork_gtk.mainloop.glib'],
+            ),
         ]
 
     def __init__(self, core):

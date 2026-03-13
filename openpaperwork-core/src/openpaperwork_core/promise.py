@@ -1,4 +1,3 @@
-from typing import Dict
 from typing import List
 import logging
 import threading
@@ -6,21 +5,22 @@ import traceback
 
 from openpaperwork_core.interfaces.mainloop import Mainloop
 from openpaperwork_core.interfaces.thread import ThreadManager
+import openpaperwork_core
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-def get_deps() -> List[Dict]:
+def get_deps() -> List[openpaperwork_core.Dependency]:
     return [
-        {
-            "interface": Mainloop,
-            "defaults": ["openpaperwork_core.mainloop.asyncio"],
-        },
-        {
-            "interface": ThreadManager,
-            "defaults": ["openpaperwork_core.thread.simple"],
-        },
+        openpaperwork_core.Dependency(
+            interface=Mainloop,
+            defaults=["openpaperwork_core.mainloop.asyncio"],
+        ),
+        openpaperwork_core.Dependency(
+            interface=ThreadManager,
+            defaults=["openpaperwork_core.thread.simple"],
+        ),
     ]
 
 

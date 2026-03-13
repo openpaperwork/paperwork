@@ -18,21 +18,21 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': Chkworkdir,
-                'defaults': [
+            openpaperwork_core.Dependency(
+                interface=Chkworkdir,
+                defaults=[
                     'paperwork_backend.chkworkdir.empty_doc',
                     'paperwork_backend.chkworkdir.label_color',
                 ],
-            },
-            {
-                "interface": DocTransactionManager,
-                "defaults": ["paperwork_backend.sync"],
-            },
-            {
-                "interface": Mainloop,
-                "defaults": ["openpaperwork_gtk.mainloop.glib"],
-            },
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocTransactionManager,
+                defaults=["paperwork_backend.sync"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=["openpaperwork_gtk.mainloop.glib"],
+            ),
         ]
 
     def cmd_complete_argparse(self, parser):

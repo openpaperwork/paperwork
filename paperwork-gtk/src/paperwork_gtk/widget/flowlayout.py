@@ -292,11 +292,11 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": Perfcheck,
-                "defaults": [],
-                "optional": True,
-            },
+            openpaperwork_core.Dependency(
+                interface=Perfcheck,
+                defaults=[],
+                optional=True,
+            ),
         ]
 
     def chkdeps(self, out: dict):

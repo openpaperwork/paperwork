@@ -26,22 +26,22 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                'interface': GtkResources,
-                'defaults': ['openpaperwork_gtk.resources'],
-            },
-            {
-                'interface': SearchField,
-                'defaults': ['paperwork_gtk.mainwindow.search.field'],
-            },
-            {
-                'interface': SuggestionProvider,
-                'defaults': ['paperwork_backend.index.whoosh'],
-            },
-            {
-                "interface": WorkQueue,
-                "defaults": ["openpaperwork_core.work_queue.default"],
-            },
+            openpaperwork_core.Dependency(
+                interface=GtkResources,
+                defaults=['openpaperwork_gtk.resources'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=SearchField,
+                defaults=['paperwork_gtk.mainwindow.search.field'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=SuggestionProvider,
+                defaults=['paperwork_backend.index.whoosh'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=WorkQueue,
+                defaults=["openpaperwork_core.work_queue.default"],
+            ),
         ]
 
     def __init__(self, core):

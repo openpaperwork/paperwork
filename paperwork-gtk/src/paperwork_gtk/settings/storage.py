@@ -42,38 +42,38 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": Config,
-                "defaults": ["openpaperwork_core.config"],
-            },
-            {
-                "interface": DocOpener,
-                "defaults": [],
-            },
-            {
-                'interface': DocStorage,
-                'defaults': ['paperwork_backend.model.workdir'],
-            },
-            {
-                "interface": DocTransactionManager,
-                "defaults": [],
-            },
-            {
-                'interface': Fs,
-                'defaults': ['openpaperwork_gtk.fs.gio'],
-            },
-            {
-                'interface': GtkResources,
-                'defaults': ['openpaperwork_gtk.resources'],
-            },
-            {
-                "interface": SettingsDialog,
-                "defaults": ["paperwork_gtk.settings"],
-            },
-            {
-                'interface': WorkQueue,
-                'defaults': ['paperwork_backend.sync'],
-            },
+            openpaperwork_core.Dependency(
+                interface=Config,
+                defaults=["openpaperwork_core.config"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocOpener,
+                defaults=[],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocStorage,
+                defaults=['paperwork_backend.model.workdir'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocTransactionManager,
+                defaults=[],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=['openpaperwork_gtk.fs.gio'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkResources,
+                defaults=['openpaperwork_gtk.resources'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=SettingsDialog,
+                defaults=["paperwork_gtk.settings"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=WorkQueue,
+                defaults=['paperwork_backend.sync'],
+            ),
         ]
 
     def __init__(self, core):

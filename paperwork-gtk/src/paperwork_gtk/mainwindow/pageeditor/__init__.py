@@ -281,59 +281,59 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                "interface": DocOpener,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                'interface': DocTransactionManager,
-                'defaults': ['paperwork_backend.sync'],
-            },
-            {
-                "interface": DocViewer,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                'interface': FrameDrawerFactory,
-                'defaults': ['paperwork_gtk.drawer.frame'],
-            },
-            {
-                'interface': GtkResources,
-                'defaults': ['openpaperwork_gtk.resources'],
-            },
-            {
-                "interface": Mainloop,
-                "defaults": ["openpaperwork_gtk.mainloop.glib"],
-            },
-            {
-                'interface': MainWindow,
-                'defaults': ['paperwork_gtk.mainwindow.window'],
-            },
-            {
-                "interface": PageImg,
-                "defaults": [
+            openpaperwork_core.Dependency(
+                interface=DocOpener,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocTransactionManager,
+                defaults=['paperwork_backend.sync'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocViewer,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=FrameDrawerFactory,
+                defaults=['paperwork_gtk.drawer.frame'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkResources,
+                defaults=['openpaperwork_gtk.resources'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=["openpaperwork_gtk.mainloop.glib"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=MainWindow,
+                defaults=['paperwork_gtk.mainwindow.window'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageImg,
+                defaults=[
                     "paperwork_backend.model.img",
                     "paperwork_backend.model.pdf",
                 ],
-            },
-            {
-                'interface': PageEditorFactory,
-                'defaults': ['paperwork_backend.pageedit.pageeditor'],
-            },
-            {
-                'interface': Pillow2Cairo,
-                'defaults': ['paperwork_backend.cairo.pillow'],
-            },
-            {
-                'interface': Resources,
-                'defaults': ['openpaperwork_core.resources.setuptools'],
-            },
-            {
-                'interface': Zoom,
-                'defaults': ['paperwork_gtk.gesture.zoom'],
-            },
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageEditorFactory,
+                defaults=['paperwork_backend.pageedit.pageeditor'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Pillow2Cairo,
+                defaults=['paperwork_backend.cairo.pillow'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Resources,
+                defaults=['openpaperwork_core.resources.setuptools'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Zoom,
+                defaults=['paperwork_gtk.gesture.zoom'],
+            ),
         ]
 
     def __init__(self, core):

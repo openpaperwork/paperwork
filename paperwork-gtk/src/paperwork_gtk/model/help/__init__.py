@@ -42,25 +42,25 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                'interface': Fs,
-                'defaults': ['openpaperwork_gtk.fs.gio'],
-            },
-            {
-                "interface": Mainloop,
-                "defaults": ["openpaperwork_gtk.mainloop.glib"],
-            },
-            {
-                'interface': Pillow,
-                'defaults': [
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=['openpaperwork_gtk.fs.gio'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=["openpaperwork_gtk.mainloop.glib"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Pillow,
+                defaults=[
                     'openpaperwork_core.pillow.img',
                     'paperwork_backend.pillow.pdf',
                 ],
-            },
-            {
-                'interface': Resources,
-                'defaults': ['openpaperwork_core.resources.setuptools'],
-            },
+            ),
+            openpaperwork_core.Dependency(
+                interface=Resources,
+                defaults=['openpaperwork_core.resources.setuptools'],
+            ),
         ]
 
     def __init__(self, core):

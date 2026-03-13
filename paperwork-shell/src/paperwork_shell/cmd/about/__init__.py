@@ -49,22 +49,22 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': App,
-                'defaults': ['paperwork_backend.app'],
-            },
-            {
-                'interface': Authors,
-                'defaults': ['paperwork_backend.authors'],
-            },
-            {
-                'interface': Fs,
-                'defaults': ['openpaperwork_core.fs.python'],
-            },
-            {
-                'interface': Resources,
-                'defaults': ['openpaperwork_core.resources.setuptools'],
-            },
+            openpaperwork_core.Dependency(
+                interface=App,
+                defaults=['paperwork_backend.app'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Authors,
+                defaults=['paperwork_backend.authors'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=['openpaperwork_core.fs.python'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Resources,
+                defaults=['openpaperwork_core.resources.setuptools'],
+            ),
         ]
 
     def cmd_complete_argparse(self, parser):

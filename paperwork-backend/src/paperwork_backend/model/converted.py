@@ -68,47 +68,47 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                'interface': DocConverter,
-                'defaults': ['paperwork_backend.converter.libreoffice'],
-            },
-            {
-                'interface': DocPdf,
-                'defaults': ['paperwork_backend.model.pdf'],
-            },
-            {
-                'interface': DocStorage,
-                'defaults': ['paperwork_backend.model.workdir'],
-            },
-            {
-                "interface": DocStorageCache,
-                "defaults": [
+            openpaperwork_core.Dependency(
+                interface=DocConverter,
+                defaults=['paperwork_backend.converter.libreoffice'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocPdf,
+                defaults=['paperwork_backend.model.pdf'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocStorage,
+                defaults=['paperwork_backend.model.workdir'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocStorageCache,
+                defaults=[
                     "paperwork_backend.model.pdf",
                     "paperwork_backend.model.img",
                 ]
-            },
-            {
-                "interface": DocTransactionFactory,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                'interface': DocTransactionManager,
-                'defaults': ['paperwork_backend.sync'],
-            },
-            {
-                'interface': Fs,
-                'defaults': ['openpaperwork_gtk.fs.gio'],
-            },
-            {
-                "interface": Mainloop,
-                "defaults": ["openpaperwork_gtk.mainloop.glib"],
-            },
-            {
-                "interface": ProgressListener,
-                "defaults": [],
-                "optional": True,
-            },
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocTransactionFactory,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocTransactionManager,
+                defaults=['paperwork_backend.sync'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=['openpaperwork_gtk.fs.gio'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=["openpaperwork_gtk.mainloop.glib"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=ProgressListener,
+                defaults=[],
+                optional=True,
+            ),
         ]
 
     def __init__(self, core):

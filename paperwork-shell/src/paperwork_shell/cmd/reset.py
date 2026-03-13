@@ -43,42 +43,42 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": DocStorage,
-                "defaults": ["paperwork_backend.model.workdir"],
-            },
-            {
-                'interface': DocTransactionManager,
-                'defaults': ['paperwork_backend.sync'],
-            },
-            {
-                "interface": ImgRenderer,
-                "defaults": [
+            openpaperwork_core.Dependency(
+                interface=DocStorage,
+                defaults=["paperwork_backend.model.workdir"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocTransactionManager,
+                defaults=['paperwork_backend.sync'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=ImgRenderer,
+                defaults=[
                     "paperwork_shell.display.docrendering.img"
                 ],
-            },
-            {
-                'interface': Mainloop,
-                'defaults': ['openpaperwork_core.mainloop.asyncio'],
-            },
-            {
-                "interface": PageImg,
-                "defaults": [
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=['openpaperwork_core.mainloop.asyncio'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageImg,
+                defaults=[
                     "paperwork_backend.model.img",
                     "paperwork_backend.model.pdf",
                 ]
-            },
-            {
-                "interface": PageManagement,
-                "defaults": ["paperwork_backend.model.img_overlay"],
-            },
-            {
-                "interface": Pillow,
-                "defaults": [
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageManagement,
+                defaults=["paperwork_backend.model.img_overlay"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Pillow,
+                defaults=[
                     'openpaperwork_core.pillow.img',
                     'paperwork_backend.pillow.pdf',
                 ],
-            },
+            ),
         ]
 
     def cmd_complete_argparse(self, parser):

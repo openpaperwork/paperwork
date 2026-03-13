@@ -153,41 +153,41 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': DataDirHandler,
-                'defaults': ['paperwork_backend.datadirhandler'],
-            },
-            {
-                'interface': DataVersioning,
-                'defaults': ['openpaperwork_core.data_versioning'],
-            },
-            {
-                "interface": Docs,
-                "defaults": ["paperwork_backend.model"],
-            },
-            {
-                'interface': Fs,
-                'defaults': ['openpaperwork_gtk.fs.gio']
-            },
-            {
-                'interface': Pages,
-                'defaults': ['paperwork_backend.model'],
-            },
-            {
-                'interface': PageText,
-                'defaults': ['paperwork_backend.model.hocr'],
-            },
-            {
-                'interface': PageImg,
-                'defaults': [
+            openpaperwork_core.Dependency(
+                interface=DataDirHandler,
+                defaults=['paperwork_backend.datadirhandler'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DataVersioning,
+                defaults=['openpaperwork_core.data_versioning'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Docs,
+                defaults=["paperwork_backend.model"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=['openpaperwork_gtk.fs.gio']
+            ),
+            openpaperwork_core.Dependency(
+                interface=Pages,
+                defaults=['paperwork_backend.model'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageText,
+                defaults=['paperwork_backend.model.hocr'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageImg,
+                defaults=[
                     'paperwork_backend.model.img',
                     'paperwork_backend.model.pdf',
                 ],
-            },
-            {
-                'interface': Sqlite,
-                'defaults': ['openpaperwork_core.sqlite'],
-            },
+            ),
+            openpaperwork_core.Dependency(
+                interface=Sqlite,
+                defaults=['openpaperwork_core.sqlite'],
+            ),
         ]
 
     def page_tracker_get(self, tracking_id) -> AbstractPageTracker:

@@ -1,5 +1,7 @@
 import logging
 
+import openpaperwork_core
+
 from paperwork_backend import _
 from paperwork_backend.docexport import (
     AbstractExportPipe,
@@ -93,12 +95,10 @@ class Plugin(AbstractExportPipePlugin):
     @classmethod
     def get_deps(cls):
         return super().get_deps() + [
-            {
-                'interface': Docs,
-                'defaults': [
-                    'paperwork_backend.model',
-                ],
-            },
+            openpaperwork_core.Dependency(
+                interface=Docs,
+                defaults=['paperwork_backend.model'],
+            ),
         ]
 
     def __init__(self, core):

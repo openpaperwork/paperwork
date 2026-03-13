@@ -70,10 +70,10 @@ class TestInit(unittest.TestCase):
                 @classmethod
                 def get_deps(cls):
                     return [
-                        {
-                            'interface': InterfaceA,
-                            'defaults': ['module_a'],
-                        }
+                        openpaperwork_core.Dependency(
+                            interface=InterfaceA,
+                            defaults=['module_a'],
+                        )
                     ]
 
                 def __init__(self, core):
@@ -89,10 +89,10 @@ class TestInit(unittest.TestCase):
                 @classmethod
                 def get_deps(cls):
                     return [
-                        {
-                            'interface': InterfaceB,
-                            'defaults': ['module_b'],
-                        }
+                        openpaperwork_core.Dependency(
+                            interface=InterfaceB,
+                            defaults=['module_b'],
+                        )
                     ]
 
                 def __init__(self, core):
@@ -155,10 +155,10 @@ class TestCall(unittest.TestCase):
                 @classmethod
                 def get_deps(cls):
                     return [
-                        {
-                            'interface': TestInterfaceB,
-                            'defaults': ['module_a', 'module_b']
-                        },
+                        openpaperwork_core.Dependency(
+                            interface=TestInterfaceB,
+                            defaults=['module_a', 'module_b']
+                        ),
                     ]
 
                 def __init__(self, core):
@@ -344,10 +344,10 @@ class TestDependencies(unittest.TestCase):
                 @classmethod
                 def get_deps(cls):
                     return [
-                        {
-                            'interface': TestInterface,
-                            'defaults': ['module_a'],
-                        },
+                        openpaperwork_core.Dependency(
+                            interface=TestInterface,
+                            defaults=['module_a'],
+                        ),
                     ]
 
         core = openpaperwork_core.Core(auto_load_dependencies=True)
@@ -391,10 +391,10 @@ class TestDependencies(unittest.TestCase):
                 @classmethod
                 def get_deps(cls):
                     return [
-                        {
-                            'interface': TestInterface,
-                            'defaults': ['module_a'],
-                        }
+                        openpaperwork_core.Dependency(
+                            interface=TestInterface,
+                            defaults=['module_a'],
+                        )
                     ]
 
                 def __init__(s, core):

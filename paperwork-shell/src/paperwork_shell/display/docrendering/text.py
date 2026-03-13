@@ -104,13 +104,13 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': PageText,
-                'defaults': [
+            openpaperwork_core.Dependency(
+                interface=PageText,
+                defaults=[
                     'paperwork_backend.model.hocr',
                     'paperwork_backend.model.pdf',
                 ],
-            },
+            ),
         ]
 
     def doc_renderer_get(self, out):

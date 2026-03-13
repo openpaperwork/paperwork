@@ -231,39 +231,39 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                "interface": ImgEditorFactory,
-                'defaults': [
+            openpaperwork_core.Dependency(
+                interface=ImgEditorFactory,
+                defaults=[
                     'paperwork_backend.imgedit.color',
                     'paperwork_backend.imgedit.crop',
                     'paperwork_backend.imgedit.rotate',
                 ],
-            },
-            {
-                'interface': Mainloop,
-                'defaults': ['openpaperwork_gtk.mainloop.glib'],
-            },
-            {
-                "interface": PageImg,
-                "defaults": [
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=['openpaperwork_gtk.mainloop.glib'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageImg,
+                defaults=[
                     "paperwork_backend.model.img",
                     "paperwork_backend.model.pdf",
                 ],
-            },
-            {
-                "interface": PageText,
-                "defaults": [
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageText,
+                defaults=[
                     "paperwork_backend.model.hocr",
                     "paperwork_backend.model.pdf",
                 ],
-            },
-            {
-                'interface': Pillow,
-                'defaults': [
+            ),
+            openpaperwork_core.Dependency(
+                interface=Pillow,
+                defaults=[
                     'openpaperwork_core.pillow.img',
                     'paperwork_backend.pillow.pdf',
                 ]
-            },
+            ),
         ]
 
     def page_editor_session_get(self, doc_url, page_idx, page_editor_ui):

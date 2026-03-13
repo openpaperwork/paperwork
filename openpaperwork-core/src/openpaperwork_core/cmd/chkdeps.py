@@ -32,10 +32,10 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": Chkdeps,
-                "defaults": [],
-            },
+            openpaperwork_core.Dependency(
+                interface=Chkdeps,
+                defaults=[],
+            ),
         ]
 
     def __init__(self, core):

@@ -19,20 +19,20 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": DocType,
-                "defaults": [
+            openpaperwork_core.Dependency(
+                interface=DocType,
+                defaults=[
                     "paperwork_backend.model.img",
                     "paperwork_backend.model.pdf",
                 ],
-            },
-            {
-                "interface": PageType,
-                "defaults": [
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageType,
+                defaults=[
                     "paperwork_backend.model.img",
                     "paperwork_backend.model.pdf",
                 ],
-            },
+            ),
         ]
 
     def doc_get_nb_pages_by_url(self, doc_url):

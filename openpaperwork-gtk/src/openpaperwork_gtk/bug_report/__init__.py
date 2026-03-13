@@ -35,47 +35,47 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": BugReportAttachment,
-                "defaults": [],
-            },
-            {
-                "interface": BugReportAttachmentSelectionListener,
-                "defaults": [],
-            },
-            {
-                'interface': ExternalApps,
-                'defaults': [
+            openpaperwork_core.Dependency(
+                interface=BugReportAttachment,
+                defaults=[],
+            ),
+            openpaperwork_core.Dependency(
+                interface=BugReportAttachmentSelectionListener,
+                defaults=[],
+            ),
+            openpaperwork_core.Dependency(
+                interface=ExternalApps,
+                defaults=[
                     'openpaperwork_core.external_apps.dbus',
                     'openpaperwork_core.external_apps.windows',
                     'openpaperwork_core.external_apps.xdg',
                 ],
-            },
-            {
-                "interface": GtkWindowListener,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                'interface': Fs,
-                'defaults': ['openpaperwork_gtk.fs.gio'],
-            },
-            {
-                "interface": GtkBugReportBuilder,
-                "defaults": [],
-            },
-            {
-                'interface': GtkResources,
-                'defaults': ['openpaperwork_gtk.resources'],
-            },
-            {
-                'interface': I18n,
-                'defaults': ['openpaperwork_core.i18n.python'],
-            },
-            {
-                'interface': Screenshot,
-                'defaults': ['openpaperwork_gtk.screenshots'],
-            },
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkWindowListener,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=['openpaperwork_gtk.fs.gio'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkBugReportBuilder,
+                defaults=[],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkResources,
+                defaults=['openpaperwork_gtk.resources'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=I18n,
+                defaults=['openpaperwork_core.i18n.python'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Screenshot,
+                defaults=['openpaperwork_gtk.screenshots'],
+            ),
         ]
 
     def __init__(self, core):

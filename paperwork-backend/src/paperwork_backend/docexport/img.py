@@ -4,6 +4,7 @@ from openpaperwork_core.interfaces.fs import Fs
 from openpaperwork_core.interfaces.mainloop import Mainloop
 from openpaperwork_core.interfaces.pillow import Pillow
 from openpaperwork_core.interfaces.progress import ProgressListener
+import openpaperwork_core
 
 from paperwork_backend import _
 from paperwork_backend.docexport import (
@@ -193,44 +194,44 @@ class Plugin(AbstractExportPipePlugin):
     @classmethod
     def get_deps(cls):
         return super().get_deps() + [
-            {
-                "interface": Fs,
-                "defaults": ["openpaperwork_gtk.fs.gio"],
-            },
-            {
-                'interface': PageImg,
-                'defaults': [
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=["openpaperwork_gtk.fs.gio"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageImg,
+                defaults=[
                     # load also model.hocr because model.pdf will
                     # satisfy the interface 'doc_text' anyway
                     'paperwork_backend.model.img',
                     'paperwork_backend.model.pdf',
                 ],
-            },
-            {
-                'interface': PageText,
-                'defaults': [
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageText,
+                defaults=[
                     # load also model.img because model.pdf will
                     # satisfy the interface 'page_img' anyway
                     'paperwork_backend.model.hocr',
                     'paperwork_backend.model.pdf',
                 ],
-            },
-            {
-                'interface': Mainloop,
-                'defaults': ['openpaperwork_gtk.mainloop.glib'],
-            },
-            {
-                'interface': Pillow,
-                'defaults': [
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=['openpaperwork_gtk.mainloop.glib'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Pillow,
+                defaults=[
                     'openpaperwork_core.pillow.img',
                     'paperwork_backend.pillow.pdf',
                 ],
-            },
-            {
-                "interface": ProgressListener,
-                "defaults": [],
-                "optional": True,
-            },
+            ),
+            openpaperwork_core.Dependency(
+                interface=ProgressListener,
+                defaults=[],
+                optional=True,
+            ),
         ]
 
     def __init__(self, core):

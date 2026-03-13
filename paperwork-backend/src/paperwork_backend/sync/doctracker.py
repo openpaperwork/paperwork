@@ -15,6 +15,7 @@ from openpaperwork_core.interfaces.progress import ProgressListener
 from openpaperwork_core.interfaces.quit import QuitListener
 from openpaperwork_core.interfaces.sqlite import Sqlite
 import openpaperwork_core
+import openpaperwork_core.promise
 
 from paperwork_backend import _
 from paperwork_backend.interfaces.data_dir_handler import DataDirHandler
@@ -314,51 +315,51 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                'interface': DataDirHandler,
-                'defaults': ['paperwork_backend.datadirhandler'],
-            },
-            {
-                'interface': DataVersioning,
-                'defaults': ['openpaperwork_core.data_versioning'],
-            },
-            {
-                'interface': Docs,
-                'defaults': ['paperwork_backend.model'],
-            },
-            {
-                'interface': DocStorage,
-                'defaults': ['paperwork_backend.model.workdir'],
-            },
-            {
-                "interface": DocText,
-                "defaults": [
+            openpaperwork_core.Dependency(
+                interface=DataDirHandler,
+                defaults=['paperwork_backend.datadirhandler'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DataVersioning,
+                defaults=['openpaperwork_core.data_versioning'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Docs,
+                defaults=['paperwork_backend.model'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocStorage,
+                defaults=['paperwork_backend.model.workdir'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocText,
+                defaults=[
                     "paperwork_backend.model.hocr",
                     "paperwork_backend.model.pdf",
                 ],
-            },
-            {
-                'interface': Fs,
-                'defaults': ['openpaperwork_gtk.fs.gio']
-            },
-            {
-                "interface": Mainloop,
-                "defaults": ["openpaperwork_gtk.mainloop.glib"],
-            },
-            {
-                "interface": ProgressListener,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                'interface': Sqlite,
-                'defaults': ['openpaperwork_core.sqlite'],
-            },
-            {
-                "interface": SyncListener,
-                "defaults": [],
-                "optional": True,
-            },
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=['openpaperwork_gtk.fs.gio']
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=["openpaperwork_gtk.mainloop.glib"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=ProgressListener,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=Sqlite,
+                defaults=['openpaperwork_core.sqlite'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=SyncListener,
+                defaults=[],
+                optional=True,
+            ),
         ]
 
     def __init__(self, core):

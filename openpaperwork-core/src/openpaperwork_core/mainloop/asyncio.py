@@ -27,16 +27,16 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": MainloopListener,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                "interface": UncaughtExceptionListener,
-                "defaults": [],
-                "optional": True,
-            },
+            openpaperwork_core.Dependency(
+                interface=MainloopListener,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=UncaughtExceptionListener,
+                defaults=[],
+                optional=True,
+            ),
         ]
 
     def __init__(self, core):

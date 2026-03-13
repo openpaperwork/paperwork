@@ -29,14 +29,14 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": DocStorage,
-                "defaults": ["paperwork_backend.model.workdir"],
-            },
-            {
-                "interface": DocExtraText,
-                "defaults": ['paperwork_backend.model.extra_text'],
-            },
+            openpaperwork_core.Dependency(
+                interface=DocStorage,
+                defaults=["paperwork_backend.model.workdir"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocExtraText,
+                defaults=['paperwork_backend.model.extra_text'],
+            ),
         ]
 
     def cmd_complete_argparse(self, parser):

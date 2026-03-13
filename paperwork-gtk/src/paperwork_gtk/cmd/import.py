@@ -27,30 +27,30 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': DocImport,
-                'defaults': ['paperwork_gtk.docimport'],
-            },
-            {
-                "interface": Fs,
-                "defaults": ["openpaperwork_gtk.fs.gio"],
-            },
-            {
-                'interface': GtkApp,
-                'defaults': ['openpaperwork_gtk.gtk_init'],
-            },
-            {
-                'interface': GtkInit,
-                'defaults': ['openpaperwork_gtk.gtk_init'],
-            },
-            {
-                'interface': Mainloop,
-                'defaults': ['openpaperwork_gtk.mainloop.glib'],
-            },
-            {
-                'interface': Fs,
-                'defaults': ['openpaperwork_gtk.fs.gio'],
-            },
+            openpaperwork_core.Dependency(
+                interface=DocImport,
+                defaults=['paperwork_gtk.docimport'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=["openpaperwork_gtk.fs.gio"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkApp,
+                defaults=['openpaperwork_gtk.gtk_init'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkInit,
+                defaults=['openpaperwork_gtk.gtk_init'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=['openpaperwork_gtk.mainloop.glib'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=['openpaperwork_gtk.fs.gio'],
+            ),
         ]
 
     def cmd_complete_argparse(self, parser):

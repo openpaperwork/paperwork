@@ -29,19 +29,19 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': AppActionCollector,
-                'defaults': ['paperwork_gtk.mainwindow.window'],
-            },
-            {
-                "interface": DocOpener,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                'interface': HelpDocs,
-                'defaults': ['paperwork_gtk.model.help'],
-            },
+            openpaperwork_core.Dependency(
+                interface=AppActionCollector,
+                defaults=['paperwork_gtk.mainwindow.window'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocOpener,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=HelpDocs,
+                defaults=['paperwork_gtk.model.help'],
+            ),
         ]
 
     def __init__(self, core):

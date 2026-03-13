@@ -436,52 +436,52 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                "interface": Config,
-                "defaults": ["openpaperwork_core.config"],
-            },
-            {
-                "interface": DocExtraText,
-                "defaults": ["paperwork_backend.model.extra_text"],
-            },
-            {
-                "interface": DataDirHandler,
-                "defaults": ["paperwork_backend.datadirhandler"],
-            },
-            {
-                "interface": DocLabels,
-                "defaults": [
+            openpaperwork_core.Dependency(
+                interface=Config,
+                defaults=["openpaperwork_core.config"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocExtraText,
+                defaults=["paperwork_backend.model.extra_text"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DataDirHandler,
+                defaults=["paperwork_backend.datadirhandler"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocLabels,
+                defaults=[
                     "paperwork_backend.model.labels",
                 ],
-            },
-            {
-                "interface": DocStorage,
-                "defaults": ["paperwork_backend.model.workdir"],
-            },
-            {
-                "interface": DocText,
-                "defaults": [
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocStorage,
+                defaults=["paperwork_backend.model.workdir"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocText,
+                defaults=[
                     "paperwork_backend.model.extra_text",
                     "paperwork_backend.model.hocr",
                     "paperwork_backend.model.pdf",
                 ],
-            },
-            {
-                "interface": Fs,
-                "defaults": ["openpaperwork_core.fs.python"],
-            },
-            {
-                "interface": HttpsBackend,
-                "defaults": ["paperwork_backend.http"],
-            },
-            {
-                "interface": Docs,
-                "defaults": ["paperwork_backend.model"],
-            },
-            {
-                "interface": Sqlite,
-                "defaults": ["openpaperwork_core.sqlite"],
-            },
+            ),
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=["openpaperwork_core.fs.python"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=HttpsBackend,
+                defaults=["paperwork_backend.http"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Docs,
+                defaults=["paperwork_backend.model"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Sqlite,
+                defaults=["openpaperwork_core.sqlite"],
+            ),
         ]
 
     def __init__(self, core):

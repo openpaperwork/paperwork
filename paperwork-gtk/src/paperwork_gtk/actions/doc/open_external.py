@@ -30,18 +30,18 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': AppActionCollector,
-                'defaults': ['paperwork_gtk.mainwindow.window'],
-            },
-            {
-                'interface': ExternalApps,
-                'defaults': [
+            openpaperwork_core.Dependency(
+                interface=AppActionCollector,
+                defaults=['paperwork_gtk.mainwindow.window'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=ExternalApps,
+                defaults=[
                     'openpaperwork_core.external_apps.dbus',
                     'openpaperwork_core.external_apps.windows',
                     'openpaperwork_core.external_apps.xdg',
                 ],
-            },
+            ),
         ]
 
     def __init__(self, core):

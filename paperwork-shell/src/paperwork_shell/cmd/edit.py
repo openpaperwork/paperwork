@@ -67,23 +67,23 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                "interface": ImgRenderer,
-                "defaults": ["paperwork_shell.display.docrendering.img"],
-                "optional": True,
-            },
-            {
-                'interface': Mainloop,
-                'defaults': ['openpaperwork_core.mainloop.asyncio'],
-            },
-            {
-                "interface": PageEditorFactory,
-                "defaults": ["paperwork_backend.pageedit.pageeditor"],
-            },
-            {
-                'interface': DocTransactionManager,
-                'defaults': ['paperwork_backend.sync'],
-            },
+            openpaperwork_core.Dependency(
+                interface=ImgRenderer,
+                defaults=["paperwork_shell.display.docrendering.img"],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=['openpaperwork_core.mainloop.asyncio'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageEditorFactory,
+                defaults=["paperwork_backend.pageedit.pageeditor"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocTransactionManager,
+                defaults=['paperwork_backend.sync'],
+            ),
         ]
 
     def cmd_complete_argparse(self, parser):

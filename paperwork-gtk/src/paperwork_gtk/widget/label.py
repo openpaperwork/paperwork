@@ -144,10 +144,10 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": DocLabelColors,
-                "defaults": ["paperwork_backend.model.labels"],
-            }
+            openpaperwork_core.Dependency(
+                interface=DocLabelColors,
+                defaults=["paperwork_backend.model.labels"],
+            )
         ]
 
     def chkdeps(self, out: dict):

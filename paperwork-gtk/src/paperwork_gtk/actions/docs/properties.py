@@ -31,22 +31,22 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': AppActionCollector,
-                'defaults': ['paperwork_gtk.mainwindow.window'],
-            },
-            {
-                'interface': DocLabels,
-                'defaults': ['paperwork_backend.model.labels'],
-            },
-            {
-                'interface': DocSelection,
-                'defaults': ['paperwork_gtk.doc_selection'],
-            },
-            {
-                'interface': DocProperties,
-                'defaults': ['paperwork_gtk.mainwindow.docproperties'],
-            },
+            openpaperwork_core.Dependency(
+                interface=AppActionCollector,
+                defaults=['paperwork_gtk.mainwindow.window'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocLabels,
+                defaults=['paperwork_backend.model.labels'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocSelection,
+                defaults=['paperwork_gtk.doc_selection'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocProperties,
+                defaults=['paperwork_gtk.mainwindow.docproperties'],
+            ),
         ]
 
     def __init__(self, core):

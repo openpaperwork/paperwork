@@ -38,21 +38,21 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + util.get_deps() + [
-            {
-                "interface": Fs,
-                "defaults": ["openpaperwork_gtk.fs.gio"],
-            },
-            {
-                'interface': Pillow,
-                'defaults': [
+            openpaperwork_core.Dependency(
+                interface=Fs,
+                defaults=["openpaperwork_gtk.fs.gio"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Pillow,
+                defaults=[
                     'openpaperwork_core.pillow.img',
                     'paperwork_backend.pillow.pdf',
                 ],
-            },
-            {
-                'interface': PillowUtil,
-                'defaults': ['openpaperwork_core.pillow.util'],
-            },
+            ),
+            openpaperwork_core.Dependency(
+                interface=PillowUtil,
+                defaults=['openpaperwork_core.pillow.util'],
+            ),
         ]
 
     def thumbnail_get_doc(self, doc_url):

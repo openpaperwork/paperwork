@@ -29,10 +29,10 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': AppMenu,
-                'defaults': ['paperwork_gtk.mainwindow.doclist'],
-            },
+            openpaperwork_core.Dependency(
+                interface=AppMenu,
+                defaults=['paperwork_gtk.mainwindow.doclist'],
+            ),
         ]
 
     def chkdeps(self, out: dict):

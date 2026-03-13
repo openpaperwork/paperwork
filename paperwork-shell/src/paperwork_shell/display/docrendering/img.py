@@ -97,24 +97,24 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': PageImg,
-                'defaults': [
+            openpaperwork_core.Dependency(
+                interface=PageImg,
+                defaults=[
                     'paperwork_backend.model.img',
                     'paperwork_backend.model.pdf',
                 ],
-            },
-            {
-                'interface': Pillow,
-                'defaults': [
+            ),
+            openpaperwork_core.Dependency(
+                interface=Pillow,
+                defaults=[
                     'openpaperwork_core.pillow.img',
                     'paperwork_backend.pillow.pdf',
                 ],
-            },
-            {
-                'interface': DocThumbnail,
-                'defaults': ['paperwork_backend.model.thumbnail'],
-            },
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocThumbnail,
+                defaults=['paperwork_backend.model.thumbnail'],
+            ),
         ]
 
     def doc_renderer_get(self, out):

@@ -27,20 +27,20 @@ Plugin Example
             # all dependencies are satisfied, loaded and initialized before
             # calling the method `init()` of this plugin.
             return [
-                {
-                    'interface': InterfaceA,
-                    'defaults': [
+                openpaperwork_core.Dependency(
+                    interface=InterfaceA,
+                    defaults=[
                         'suggested_default_plugin_a',
                         'suggested_default_plugin_b',
                     ],
-                },
-                {
-                   'interface': InterfaceB,
-                    'defaults': [
+                ),
+                openpaperwork_core.Dependency(
+                   interface=InterfaceB,
+                    defaults=[
                         'suggested_default_plugin_d',
                         'suggested_default_plugin_e',
                     ],
-                }
+                )
             ]
 
         def __init__(self, core):

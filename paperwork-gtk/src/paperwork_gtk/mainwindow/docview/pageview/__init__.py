@@ -241,67 +241,67 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                'interface': CairoRendererFactory,
-                'defaults': [
+            openpaperwork_core.Dependency(
+                interface=CairoRendererFactory,
+                defaults=[
                     'paperwork_backend.cairo.pillow',
                     'paperwork_backend.cairo.poppler',
                 ],
-            },
-            {
-                "interface": Docs,
-                "defaults": [
+            ),
+            openpaperwork_core.Dependency(
+                interface=Docs,
+                defaults=[
                     "paperwork_backend.model.img",
                     "paperwork_backend.model.pdf",
                 ],
-            },
-            {
-                "interface": DocViewer,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                'interface': GtkResources,
-                'defaults': ['openpaperwork_gtk.resources'],
-            },
-            {
-                "interface": MemleakDetector,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                'interface': PageImg,
-                'defaults': [
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocViewer,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=GtkResources,
+                defaults=['openpaperwork_gtk.resources'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=MemleakDetector,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageImg,
+                defaults=[
                     'paperwork_backend.model.img',
                     'paperwork_backend.model.pdf',
                 ],
-            },
-            {
-                'interface': Pages,
-                'defaults': [
+            ),
+            openpaperwork_core.Dependency(
+                interface=Pages,
+                defaults=[
                     'paperwork_backend.model.img',
                     'paperwork_backend.model.pdf',
                 ],
-            },
-            {
-                "interface": PageViewerListener,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                "interface": Perfcheck,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                "interface": ProgressListener,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                'interface': WorkQueue,
-                'defaults': ['openpaperwork_core.work_queue.default'],
-            },
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageViewerListener,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=Perfcheck,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=ProgressListener,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=WorkQueue,
+                defaults=['openpaperwork_core.work_queue.default'],
+            ),
         ]
 
     def __init__(self, core):

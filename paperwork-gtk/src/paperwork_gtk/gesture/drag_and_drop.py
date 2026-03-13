@@ -38,36 +38,36 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return openpaperwork_core.promise.get_deps() + [
-            {
-                "interface": DocImport,
-                "defaults": ["paperwork_gtk.docimport"],
-            },
-            {
-                "interface": DocOpener,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                'interface': DocStorage,
-                'defaults': ['paperwork_backend.model.workdir'],
-            },
-            {
-                'interface': DocTransactionManager,
-                'defaults': ['paperwork_backend.sync'],
-            },
-            {
-                "interface": DragAndDropDestination,
-                "defaults": [],
-                "optional": True,
-            },
-            {
-                "interface": PageManagement,
-                "defaults": [
+            openpaperwork_core.Dependency(
+                interface=DocImport,
+                defaults=["paperwork_gtk.docimport"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocOpener,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocStorage,
+                defaults=['paperwork_backend.model.workdir'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DocTransactionManager,
+                defaults=['paperwork_backend.sync'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=DragAndDropDestination,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
+                interface=PageManagement,
+                defaults=[
                     "paperwork_backend.model.img",
                     "paperwork_backend.model.hocr",
                     "paperwork_backend.model.pdf",
                 ],
-            },
+            ),
         ]
 
     def __init__(self, core):

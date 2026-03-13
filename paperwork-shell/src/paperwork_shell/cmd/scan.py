@@ -34,22 +34,22 @@ class Plugin(
     @classmethod
     def get_deps(cls):
         return [
-            {
-                "interface": DocStorage,
-                "defaults": ["paperwork_backend.model.workdir"],
-            },
-            {
-                "interface": Mainloop,
-                "defaults": ['openpaperwork_gtk.mainloop.glib'],
-            },
-            {
-                "interface": Scan,
-                "defaults": ["paperwork_backend.docscan.libinsane"],
-            },
-            {
-                "interface": Scan2Doc,
-                "defaults": ["paperwork_backend.docscan.scan2doc"],
-            },
+            openpaperwork_core.Dependency(
+                interface=DocStorage,
+                defaults=["paperwork_backend.model.workdir"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=['openpaperwork_gtk.mainloop.glib'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Scan,
+                defaults=["paperwork_backend.docscan.libinsane"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Scan2Doc,
+                defaults=["paperwork_backend.docscan.scan2doc"],
+            ),
         ]
 
     def __init__(self, core):

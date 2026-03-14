@@ -11,7 +11,10 @@ from paperwork_backend.interfaces.doc_pdf import DocPdf
 from paperwork_backend.interfaces.docs import Docs
 from paperwork_backend.interfaces.docs import DocType
 from paperwork_backend.interfaces.pages import PageManagement
-from paperwork_backend.interfaces.doc_storage import DocStorage
+from paperwork_backend.interfaces.doc_storage import (
+    DocStorage,
+    DocStorageListener
+)
 
 
 LOGGER = logging.getLogger(__name__)
@@ -48,6 +51,11 @@ class Plugin(
                 optional=True,  # debatable, but required to break dependency cycle
             ),
             openpaperwork_core.Dependency(
+                interface=DocStorageListener,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
                 interface=Fs,
                 defaults=['openpaperwork_gtk.fs.gio'],
             ),
@@ -68,6 +76,13 @@ class Plugin(
 
     def _on_work_dir_changed(self):
         LOGGER.info("Work directory has changed")
+        self.core.call_all(DocStorageListener.on_storage_changed)
+
+    def doc_storage_get_name(self):
+        return self.core.call_success(
+            Fs.fs_basename,
+            self.core.call_success(Config.config_get, 'workdir')
+        )
 
     def storage_get_id(self):
         """

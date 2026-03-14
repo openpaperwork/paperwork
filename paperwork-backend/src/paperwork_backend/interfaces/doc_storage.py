@@ -8,7 +8,17 @@ class DocStorageCache(abc.ABC):
         ...
 
 
+class DocStorageListener(abc.ABC):
+    @abc.abstractmethod
+    def on_storage_changed(self):
+        ...
+
+
 class DocStorage(abc.ABC):
+    @abc.abstractmethod
+    def doc_storage_get_name(self):
+        ...
+
     @abc.abstractmethod
     def doc_id_to_url(self, doc_id, existing=True):
         ...

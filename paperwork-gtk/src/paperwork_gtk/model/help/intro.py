@@ -118,6 +118,10 @@ class Plugin(
         ))
 
     @openpaperwork_core.noop
+    def doc_storage_get_name(self):
+        pass
+
+    @openpaperwork_core.noop
     def doc_has_labels_by_url(self, doc_url):
         pass
 

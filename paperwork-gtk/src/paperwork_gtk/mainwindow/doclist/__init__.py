@@ -27,7 +27,10 @@ from openpaperwork_gtk.interfaces.screenshot import Screenshot
 from openpaperwork_gtk.interfaces.screenshot import ScreenshotProvider
 import openpaperwork_gtk.deps
 
-from paperwork_backend.interfaces.doc_storage import DocStorage
+from paperwork_backend.interfaces.doc_storage import (
+    DocStorage,
+    DocStorageListener
+)
 from paperwork_backend.interfaces.docs import DocOpener
 from paperwork_backend.interfaces.docs import Docs
 from paperwork_backend.interfaces.docs import DocType
@@ -69,6 +72,7 @@ class Plugin(
     DocOpener,
     DocSelecter,
     DocSelection,
+    DocStorageListener,
     DragAndDropDestination,
     GuiListener,
     MainWindowListener,
@@ -183,9 +187,10 @@ class Plugin(
         self.doc_actions = Gio.Menu.new()
 
         self.doclist = self.widget_tree.get_object("doclist_listbox")
+        self.header = self.widget_tree.get_object("doclist_header")
         self.core.call_all(
             MainWindow.mainwindow_add, side="left", name="doclist", prio=10000,
-            header=self.widget_tree.get_object("doclist_header"),
+            header=self.header,
             body=self.widget_tree.get_object("doclist_body"),
         )
         self.core.call_all(
@@ -229,6 +234,7 @@ class Plugin(
         )
 
         self.on_mainwindow_fold_change()
+        self.on_storage_changed()
 
     def chkdeps(self, out: dict):
         if not GLIB_AVAILABLE:
@@ -240,6 +246,9 @@ class Plugin(
         self.core.call_all(
             MainWindow.mainwindow_show, side="left", name="doclist"
         )
+
+    def on_storage_changed(self):
+        self.header.set_subtitle(self.core.call_success(DocStorage.doc_storage_get_name))
 
     @openpaperwork_core.noop
     def new_mainwindow(self):

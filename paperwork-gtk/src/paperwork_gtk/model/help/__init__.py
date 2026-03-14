@@ -246,7 +246,7 @@ class Plugin(
         out.add(self.label)
 
     @openpaperwork_core.noop
-    def doc_storage_get_name(self):
+    def storage_get_name(self):
         pass
 
     @openpaperwork_core.noop

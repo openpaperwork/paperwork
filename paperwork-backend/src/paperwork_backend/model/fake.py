@@ -84,6 +84,9 @@ class Plugin(
         )
         self.core.call_all(Config.config_register, "workdir", setting)
 
+    def storage_get_name(self):
+        return "fake"
+
     def storage_get_id(self):
         return "file:///home/jflesch/papers"
 

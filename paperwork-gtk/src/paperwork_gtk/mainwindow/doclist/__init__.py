@@ -248,7 +248,7 @@ class Plugin(
         )
 
     def on_storage_changed(self):
-        self.header.set_subtitle(self.core.call_success(DocStorage.doc_storage_get_name))
+        self.header.set_subtitle(self.core.call_success(DocStorage.storage_get_name))
 
     @openpaperwork_core.noop
     def new_mainwindow(self):

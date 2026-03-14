@@ -16,7 +16,7 @@ class DocStorageListener(abc.ABC):
 
 class DocStorage(abc.ABC):
     @abc.abstractmethod
-    def doc_storage_get_name(self):
+    def storage_get_name(self):
         ...
 
     @abc.abstractmethod

@@ -78,7 +78,7 @@ class Plugin(
         LOGGER.info("Work directory has changed")
         self.core.call_all(DocStorageListener.on_storage_changed)
 
-    def doc_storage_get_name(self):
+    def storage_get_name(self):
         return self.core.call_success(
             Fs.fs_basename,
             self.core.call_success(Config.config_get, 'workdir')

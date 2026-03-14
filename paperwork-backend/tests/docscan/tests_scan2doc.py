@@ -63,6 +63,9 @@ class TestScan2Doc(unittest.TestCase):
             ):
                 PRIORITY = 10000000000
 
+                def storage_get_name(self):
+                    pass
+
                 def on_scan_feed_start(s, scan_id):
                     doc_id = self.core.call_success(
                         Scan2Doc.scan2doc_scan_id_to_doc_id, scan_id

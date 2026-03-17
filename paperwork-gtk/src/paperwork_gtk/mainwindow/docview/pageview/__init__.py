@@ -265,6 +265,10 @@ class Plugin(
                 defaults=['openpaperwork_gtk.resources'],
             ),
             openpaperwork_core.Dependency(
+                interface=Mainloop,
+                defaults=["openpaperwork_gtk.mainloop.glib"],
+            ),
+            openpaperwork_core.Dependency(
                 interface=MemleakDetector,
                 defaults=[],
                 optional=True,

@@ -15,7 +15,7 @@ from paperwork_gtk.interfaces.doc_properties import DocProperties
 from paperwork_gtk.interfaces.doc_properties import DocPropertiesComponent
 from paperwork_gtk.interfaces.doc_properties import DocPropertiesUpdate
 from paperwork_gtk.interfaces.main_window import MainWindow
-from paperwork_gtk.interfaces.search_field import SearchField
+from paperwork_gtk.interfaces.search_field import Search
 
 
 LOGGER = logging.getLogger(__name__)
@@ -115,7 +115,7 @@ class DocPropertiesEditor:
         promise = promise.then(self._open_doc, upd)
         promise = promise.then(lambda *args, **kwargs: None)
         promise = promise.then(
-            self.core.call_all, SearchField.search_update_document_list,
+            self.core.call_all, Search.search_update_document_list,
         )
         promise = promise.then(lambda *args, **kwargs: None)
         promise = promise.then(self._upd_index, upd)
@@ -195,6 +195,11 @@ class Plugin(
             openpaperwork_core.Dependency(
                 interface=DocTransactionManager,
                 defaults=['paperwork_backend.sync'],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Search,
+                defaults=[],
+                optional=True,
             ),
         ]
 

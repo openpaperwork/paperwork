@@ -55,6 +55,11 @@ class Plugin(
                 defaults=['openpaperwork_core.config'],
             ),
             openpaperwork_core.Dependency(
+                interface=DocOpener,
+                defaults=[],
+                optional=True,
+            ),
+            openpaperwork_core.Dependency(
                 interface=DocViewer,
                 defaults=["paperwork_gtk.mainwindow.docview"],
             ),
@@ -79,6 +84,10 @@ class Plugin(
             openpaperwork_core.Dependency(
                 interface=Mainloop,
                 defaults=["openpaperwork_gtk.mainloop.glib"],
+            ),
+            openpaperwork_core.Dependency(
+                interface=NewDoc,
+                defaults=["paperwork_gtk.new_doc"],
             ),
             openpaperwork_core.Dependency(
                 interface=Scan,

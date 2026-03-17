@@ -24,7 +24,7 @@ from openpaperwork_gtk.interfaces.gtk import GtkResources
 from openpaperwork_gtk.interfaces.gtk_window import GtkWindowListener
 import openpaperwork_gtk.deps
 
-from paperwork_backend.interfaces.cairo import Url2Cairo
+from paperwork_backend.interfaces.cairo import CairoRendererFactory
 from paperwork_backend.interfaces.docs import DocOpener
 from paperwork_backend.interfaces.export import ExportPipes
 import paperwork_backend.docexport
@@ -57,15 +57,15 @@ class Plugin(
                 defaults=[],
             ),
             openpaperwork_core.Dependency(
-                interface=Config,
-                defaults=["openpaperwork_core.config"],
-            ),
-            openpaperwork_core.Dependency(
-                interface=Url2Cairo,
+                interface=CairoRendererFactory,
                 defaults=[
                     'paperwork_backend.cairo.pillow',
                     'paperwork_backend.cairo.poppler',
                 ],
+            ),
+            openpaperwork_core.Dependency(
+                interface=Config,
+                defaults=["openpaperwork_core.config"],
             ),
             openpaperwork_core.Dependency(
                 interface=ExportPipes,
@@ -423,7 +423,7 @@ class Plugin(
         LOGGER.info("Preview: %s", tmp_file_url)
         self.tmp_file_url = tmp_file_url
         self.renderer = self.core.call_success(
-            Url2Cairo.cairo_renderer_by_url, "exporter", tmp_file_url
+            CairoRendererFactory.cairo_renderer_by_url, "exporter", tmp_file_url
         )
         self.renderer.zoom = self.zoom.get_value()
         self.renderer.connect("size_obtained", self._on_size_obtained)

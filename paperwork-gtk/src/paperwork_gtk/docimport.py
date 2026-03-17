@@ -260,9 +260,7 @@ class Plugin(
         self._show_result_notification(file_import)
 
     def _reload_docs(self, file_import):
-        for doc_id in file_import.upd_doc_ids:
-            doc_url = self.core.call_success(DocStorage.doc_id_to_url, doc_id)
-            self.core.call_all(DocOpener.doc_reload, doc_id, doc_url)
+        self.core.call_all(DocOpener.doc_reload)
 
     def _add_to_recent(self, file_uris):
         for file_uri in file_uris:

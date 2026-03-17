@@ -194,7 +194,7 @@ class Plugin(
         LOGGER.info(
             "Page scanned: %s p%d (scan id = %d)", doc_id, nb_pages, scan_id
         )
-        self.core.call_all(DocViewer.doc_reload, doc_id, doc_url)
+        self.core.call_all(DocOpener.doc_reload)
 
     def on_scan_started(self, scan_id):
         if not self.busy:

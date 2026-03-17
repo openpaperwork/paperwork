@@ -432,7 +432,7 @@ class Plugin(
         self.core.call_success(
             MainWindow.mainwindow_show, side="right", name="docview"
         )
-        self.core.call_all(DocOpener.doc_reload, *self.active_doc)
+        self.core.call_all(DocOpener.doc_reload)
         self.core.call_success(
             Mainloop.mainloop_schedule, self.core.call_all, DocViewer.doc_goto_page, page_idx
         )

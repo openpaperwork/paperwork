@@ -102,7 +102,7 @@ class Plugin(
         LOGGER.info("Will reset page %s p%d", doc_id, page_idx)
 
         self.core.call_all(PageManagement.page_reset_by_url, doc_url, page_idx)
-        self.core.call_all(DocOpener.doc_reload, doc_id, doc_url)
+        self.core.call_all(DocOpener.doc_reload)
         self.core.call_success(
             Mainloop.mainloop_schedule, self.core.call_all, DocViewer.doc_goto_page, page_idx
         )

@@ -169,7 +169,7 @@ class Plugin(
 
         for doc in ((src_doc_id, src_doc_url), (dst_doc_id, dst_doc_url)):
             self.promise = self.promise.then(
-                self.core.call_all, DocOpener.doc_reload, *doc
+                self.core.call_all, DocOpener.doc_reload
             )
             self.promise = self.promise.then(lambda *args, **kwargs: None)
 

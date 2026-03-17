@@ -182,13 +182,13 @@ class Plugin(
         promise = promise.then(
             self.core.call_one,
             Mainloop.mainloop_schedule, self.core.call_all,
-            DocOpener.doc_reload, *self.active_doc
+            DocOpener.doc_reload
         )
         promise = promise.then(lambda *args, **kwargs: None)
         promise = promise.then(
             self.core.call_one,
             Mainloop.mainloop_schedule, self.core.call_all,
-            DocOpener.doc_reload, *target_doc
+            DocOpener.doc_reload
         )
         promise = promise.then(lambda *args, **kwargs: None)
         promise = promise.then(

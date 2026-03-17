@@ -279,13 +279,8 @@ class Plugin(
         for controller in self.controllers.values():
             controller.enter()
 
-    def doc_reload(self, doc_id, doc_url):
-        if self.active_doc != (doc_id, doc_url):
-            LOGGER.info(
-                "Reload requested for document %s, but active doc is %s",
-                (doc_id, doc_url), self.active_doc
-            )
-            return
+    def doc_reload(self):
+        (doc_id, doc_url) = self.active_doc
         mtime = self.core.call_success(Docs.doc_get_mtime_by_url, doc_url)
         if mtime == self.active_doc_mtime:
             LOGGER.info(

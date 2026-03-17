@@ -120,10 +120,6 @@ class DocViewer(abc.ABC):
         ...
 
     @abc.abstractmethod
-    def doc_reload(self, doc_id, doc_url):
-        ...
-
-    @abc.abstractmethod
     def doc_goto_previous_page(self):
         ...
 

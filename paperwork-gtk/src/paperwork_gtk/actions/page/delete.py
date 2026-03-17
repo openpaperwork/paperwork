@@ -134,7 +134,7 @@ class Plugin(
 
         self.core.call_all(PageManagement.page_delete_by_url, doc_url, page_idx)
         self.core.call_all(SearchField.search_update_document_list)
-        self.core.call_all(DocOpener.doc_reload, doc_id, doc_url)
+        self.core.call_all(DocOpener.doc_reload)
 
         self.core.call_success(DocTransactionManager.transaction_simple, [('upd', doc_id),])
 

@@ -1,9 +1,5 @@
 import os
-try:
-    import pkg_resources
-    PKG_RESOURCES_AVAILABLE = True
-except Exception:
-    PKG_RESOURCES_AVAILABLE = False
+from importlib.resources import files
 import shutil
 
 import xdg.BaseDirectory
@@ -39,7 +35,6 @@ class Plugin(
         p.add_argument("--data_base_dir", default="/usr/share")
 
     def _install(self, console, icondir, datadir):
-        assert PKG_RESOURCES_AVAILABLE
         png_src_icon_pattern = "paperwork_{}.png"
         png_dst_icon_pattern = os.path.join(
             icondir, "hicolor", "{size}x{size}", "apps",
@@ -56,19 +51,17 @@ class Plugin(
 
         to_copy = [
             (
-                pkg_resources.resource_filename(
-                    'paperwork_gtk.data',
+                str(files('paperwork_gtk.data').joinpath(
                     png_src_icon_pattern.format(size)
-                ),
+                )),
                 png_dst_icon_pattern.format(size=size),
             ) for size in ICON_SIZES
         ]
         to_copy.append(
             (
-                pkg_resources.resource_filename(
-                    'paperwork_gtk.data',
+                str(files('paperwork_gtk.data').joinpath(
                     'work.openpaper.Paperwork.metainfo.xml',
-                ),
+                )),
                 appdata_path
             )
         )
@@ -79,9 +72,7 @@ class Plugin(
                 dst_icon = 'work.openpaper.Paperwork.svg'
             to_copy.append(
                 (
-                    pkg_resources.resource_filename(
-                        'paperwork_gtk.data', src_icon
-                    ),
+                    str(files('paperwork_gtk.data').joinpath(src_icon)),
                     os.path.join(
                         icondir, "hicolor", "scalable", "apps", dst_icon
                     )

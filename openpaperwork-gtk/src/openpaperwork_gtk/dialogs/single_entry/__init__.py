@@ -34,6 +34,11 @@ class Plugin(
                 interface=GtkResources,
                 defaults=['openpaperwork_gtk.resources'],
             ),
+            openpaperwork_core.Dependency(
+                interface=GtkSingleEntryDialogListener,
+                defaults=[],
+                optional=True,
+            ),
         ]
 
     def __init__(self, core):
